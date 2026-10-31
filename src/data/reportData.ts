@@ -1273,7 +1273,7 @@ export const reportSections: ReportSection[] = [
         title: "Underwriting brief — Age, income & household profile",
         rows: [
           [
-            "📝UNDERWRITING BRIEF: Age, Income, HH Profile (Downtown) Peak Earners (Ages 35 - 44) - The Premium Margin Anchor Leader: TriBeCa Broadway/Civic (Tract 31) & Waterfront Core (Tracts 21, 33) Wealth Baseline: Elite 52.4% of households clear $200K; 41.3% exceed $250K+ Spending Behavior: Entrenched corporate/legal wealth driving high-ticket catering and private dining Ideal Format: Demands high-end private chef provisioning and upscale dine-in programming Peak Earners (Ages 35–44) — The Premium Margin Anchor Leader: Billionaires’ Row Corridor (Tract 139) & The Plaza District Corridor (Tract 112.03) Wealth Baseline: Elite 58.1% of households clear $200K; 49.5% exceed $250K+ Spending Behavior: Senior global finance and corporate executives driving maximum inelastic spending Ideal Format: Demands executive grab-and-go options and premium beverage provisioning Luxury Families (With Kids) - The Large-Basket Grocery Anchor Leader: Central Park West (Tracts 159, 167) & Carnegie Hill (Tracts 146.01, 146.02, 150.01, 150.02) Wealth Baseline: Dominated by recession-proof generational wealth; 48.7% clear $200K Spending Behavior: Peak uptown family density (22.4% w/ kids) driving maximum physical grocery volume Ideal Format: Built for expansive ground-floor layouts and deep retail grocery floor plates",
+            "📝UNDERWRITING BRIEF: Age, Income, HH Profile Peak Earners (Ages 35 - 44) - The Premium Margin Anchor Leader: Billionaires’ Row Corridor (Tract 139) & The Plaza District Corridor (Tract 112.03) Wealth Baseline: Elite 58.1% of households clear $200K; 49.5% exceed $250K+ Spending Behavior: Senior global finance and corporate executives driving maximum inelastic spending Ideal Format: Demands executive grab-and-go options and premium beverage provisioning Luxury Families (With Kids) - The Large-Basket Grocery Anchor Leader: Central Park West (Tracts 159, 167) & Carnegie Hill (Tracts 146.01, 146.02, 150.01, 150.02) Wealth Baseline: Dominated by recession-proof generational wealth; 48.7% clear $200K Spending Behavior: Peak uptown family density (22.4% w/ kids) driving maximum physical grocery volume Ideal Format: Built for expansive ground-floor layouts and deep retail grocery floor plates Affluent Singles/DINKs (Ages 25 - 34) – The High-Velocity Impulse Anchor Leader: Upper Eastside Core & Lincoln Square Wealth Baseline: High-density vertical avenue high-rise corridors packed with young finance/tech couples clearing a secure 52.3% household baseline above $150K. Spending Behavior: Fast-paced urban professional density with a heavy preference for \"clean\", trend-forward fast-casual execution and premium morning counter service. Ideal Format: Matches high-volume counter configurations, rapid digital app-pickup slots, and aesthetic specialty juice/wellness bars designed to absorb massive weekend stroll traffic.",
           ],
         ],
       },
@@ -1556,6 +1556,9 @@ export const reportSections: ReportSection[] = [
             "195,000",
             "$225 - $295",
           ],
+          [
+            "* Note on Corridor Valuation Pricing Spread: Corridor rental ranges reflect live premium, high-velocity avenue blockfronts and flagship corner profiles optimized for peak pedestrian volume capture. Committed historical lease comparables (e.g., Sweetgreen at 26 E. 23rd St at ~$165/SF) and unadjusted blended basement asset allocations will safely map to localized side-street tranches, anchoring the lower underwritten bounds of the submarket between $115 and $165/SF",
+          ],
         ],
       },
       {
@@ -1742,6 +1745,9 @@ export const reportSections: ReportSection[] = [
             "22,400",
             "52,000",
             "$321 - $350",
+          ],
+          [
+            "* Note on Downtown Corridor Pricing Spread: Corridor rental ranges reflect live premium, high-velocity avenue thoroughfares and flagship retail corridors optimized for peak pedestrian volume capture (e.g., SoHo Broadway/Spring axes at $295–$385/SF). Committed historical lease comparables executed on major thoroughfares (e.g., Dig at 691 Broadway at ~$155/SF or H. Valley at 569 Hudson St at ~$180/SF) and unadjusted blended basement asset allocations will safely map to localized side-street tranches, anchoring the lower underwritten bounds of the Downtown submarket between $115 and $185/SF",
           ],
         ],
       },
@@ -1947,6 +1953,9 @@ export const reportSections: ReportSection[] = [
             "3,400",
             "22,000",
             "$150 - $195",
+          ],
+          [
+            "* Note on UWS & UES Corridor Pricing Spread: Corridor rental ranges reflect live premium, high-velocity avenue thoroughfares and hyper-exclusive vertical penthouse sectors optimized for peak luxury consumer capture (e.g., The Plaza District Corridor at $400–$550/SF). Committed historical lease comparables executed on major thoroughfares and unadjusted blended basement asset allocations will safely map to localized side-street tranches or off-avenue grids, anchoring the lower underwritten bounds of the Upper West and East Side submarkets between $95 and $185/SF",
           ],
         ],
       },

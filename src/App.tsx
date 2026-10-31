@@ -147,7 +147,7 @@ function ChartFrame({
 }: {
   title: string
   eyebrow: string
-  children: (size: { width: number height: number }) => ReactNode
+  children: (size: { width: number; height: number }) => ReactNode
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const chartRef = useRef<HTMLDivElement>(null)
@@ -192,7 +192,7 @@ function GlassTooltip({
   label,
 }: {
   active?: boolean
-  payload?: Array<{ name?: string value?: number color?: string }>
+  payload?: Array<{ name?: string; value?: number; color?: string }>
   label?: string
 }) {
   if (!active || !payload?.length) return null
