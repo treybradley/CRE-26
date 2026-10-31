@@ -1,6 +1,9 @@
 {
   "title": "CRE Matrix App",
   "description": "An interactive CRE and F&B presentation for client meetings, showcasing a high-end dine-in and grocer concept through navigable sections, charts, and market heatmaps.",
+  "icons": {
+    "icon": "/favicon.jpeg"
+  },
   "robots": {
     "index": false
   },
