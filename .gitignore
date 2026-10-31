@@ -21,3 +21,6 @@ logs/
 /.opencode-skills/
 
 .pnpm-store/
+.vercel
+
+.vercel/
