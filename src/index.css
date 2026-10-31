@@ -35,6 +35,10 @@
 .toc-sub a { display: block; padding: 5px 10px; font-size: 11px; line-height: 1.35; color: rgba(255,255,255,.55); text-decoration: none; }
 .toc-sub a:hover { color: white; }
 .toc-phase-label { margin: 18px 11px 5px; color: #83a9c5; font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+.toc-download { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.12); }
+.toc-download a { display: flex; gap: 15px; align-items: center; color: rgba(255,255,255,.78); padding: 13px 11px; border-radius: 10px; text-decoration: none; transition: .2s ease; }
+.toc-download a:hover { background: rgba(255,255,255,.11); color: white; }
+.toc-download b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,.1); }
 .toc-mobile-trigger, .toc-close-mobile, .toc-backdrop { display: none; }
 
 .hero { min-height: 100vh; position: relative; overflow: hidden; color: white; background: radial-gradient(circle at 75% 20%, #356f9e 0, transparent 32%), linear-gradient(135deg, #102b43 0%, var(--blue) 58%, #173e61 100%); }

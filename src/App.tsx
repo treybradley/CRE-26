@@ -9,6 +9,7 @@ import {
 import {
   BarChart3,
   ChevronDown,
+  FileText,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
@@ -31,6 +32,9 @@ const BLUE = "#1F4E79"
 const GOLD = "#b89a5e"
 const TEAL = "#4e8d8a"
 const REPORT_DATE = "31 October 2026"
+const ANALYSIS_PDF = `${import.meta.env.BASE_URL}${encodeURIComponent(
+  "Manhattan_FB_Trade_Area_Analysis (31 October 2026).pdf",
+)}`
 
 const corridorCatchments = [
   {
@@ -1299,6 +1303,19 @@ function TableOfContents({
             >
               <b>S</b>
               {open && <span>Sources &amp; Footnotes</span>}
+            </a>
+          </div>
+          <div className="toc-group toc-download">
+            <a
+              href={ANALYSIS_PDF}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Download Manhattan F&B Trade Area Analysis PDF"
+            >
+              <b>
+                <FileText size={14} />
+              </b>
+              {open && <span>Analysis PDF · {REPORT_DATE}</span>}
             </a>
           </div>
         </nav>

@@ -143,7 +143,7 @@ export const reportSections: ReportSection[] = [
             "High-volume daytime workers and event foot traffic. Success requires layouts optimized for extreme lunch rushes, rapid digital/app pickups, and corporate catering.",
           ],
           [
-            "Chelsea Chelsea",
+            "Chelsea",
             "Tract 83 North: W. 25th St. South: W. 20th St. East: Seventh Ave. West: Eighth Ave.",
             "Blockfront composed heavily of historic brownstone walk-ups, quiet tree-lined streets, local neighborhood restaurants, and highly stable, wealthy long-term renters.",
           ],
@@ -484,7 +484,7 @@ export const reportSections: ReportSection[] = [
         title: "2.2 Census Tract Isolation",
         rows: [
           [
-            "DOWNTOWN CENSUS TRACT EXCLUSIONS Confucius Plaza: Purged from NoHo/NoLiTa/TriBeCa, and wits within Census Tract 16 NYCHA Alfred E. Smith Houses, where annual Median HH Income is approximately $23K Chinatown/LES Tenements: Capped under strict low-income preservation rent brackets 388 Hudson Street: Extracted by enforcing an absolute data boundary at Hudson Street Independence Plaza Tranches: Bypassed to filter out legacy below-market rental units",
+            "DOWNTOWN CENSUS TRACT EXCLUSIONS Confucius Plaza: Purged from NoHo/NoLiTa/TriBeCa, and sits within Census Tract 16 NYCHA Alfred E. Smith Houses, where annual Median HH Income is approximately $23K Chinatown/LES Tenements: Capped under strict low-income preservation rent brackets 388 Hudson Street: Extracted by enforcing an absolute data boundary at Hudson Street Independence Plaza Tranches: Bypassed to filter out legacy below-market rental units",
           ],
         ],
       },
