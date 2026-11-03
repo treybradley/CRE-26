@@ -27,6 +27,10 @@ import {
 } from "recharts"
 import * as L from "leaflet"
 import { reportSections, type ReportTable } from "./data/reportData"
+import ComingSoon from "./ComingSoon"
+
+/** Soft takedown gate — set to `true` to restore the full report app. */
+const SITE_AVAILABLE = false
 
 const BLUE = "#1F4E79"
 const GOLD = "#b89a5e"
@@ -1324,7 +1328,7 @@ function TableOfContents({
   )
 }
 
-export default function App() {
+function ReportApp() {
   const [tocOpen, setTocOpen] = useState(true)
   const [active, setActive] = useState("midtown")
   const navigationTargetRef = useRef<string | null>(null)
@@ -1705,4 +1709,9 @@ export default function App() {
       </main>
     </div>
   )
+}
+
+export default function App() {
+  if (!SITE_AVAILABLE) return <ComingSoon />
+  return <ReportApp />
 }
