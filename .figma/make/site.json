@@ -1,0 +1,14 @@
+{
+  "title": "CRE Matrix App — Coming Soon",
+  "description": "This presentation is temporarily offline. Please check back shortly.",
+  "icons": {
+    "icon": "/favicon.jpeg"
+  },
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
