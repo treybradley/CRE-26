@@ -764,7 +764,6 @@ function SitesCompsSelect({
   setSelectedSiteIds,
   selectedLeaseIndexes,
   setSelectedLeaseIndexes,
-  hint,
 }: {
   focus: SitesFocus
   setFocus: (f: SitesFocus) => void
@@ -772,7 +771,6 @@ function SitesCompsSelect({
   setSelectedSiteIds: (ids: string[]) => void
   selectedLeaseIndexes: number[]
   setSelectedLeaseIndexes: (indexes: number[]) => void
-  hint?: string
 }) {
   const [open, setOpen] = useState(false)
   const rootRef = useMenuDismiss(open, () => setOpen(false))
@@ -836,7 +834,7 @@ function SitesCompsSelect({
   }
 
   return (
-    <div className="multi-select under-title" ref={rootRef}>
+    <div className="multi-select" ref={rootRef}>
       <span className="multi-select-label">Sites &amp; comps</span>
       <div className="multi-select-control">
         <button
@@ -863,63 +861,64 @@ function SitesCompsSelect({
             >
               All sites
             </button>
-          {tradeArea.sites.map((s) => (
-            <label
-              key={s.id}
-              className={
-                focus === "site" && !sitesAll && selectedSiteIds.includes(s.id)
-                  ? "active"
-                  : ""
-              }
-            >
-              <input
-                type="checkbox"
-                checked={
+            {tradeArea.sites.map((s) => (
+              <label
+                key={s.id}
+                className={
                   focus === "site" &&
-                  (sitesAll || selectedSiteIds.includes(s.id))
+                  !sitesAll &&
+                  selectedSiteIds.includes(s.id)
+                    ? "active"
+                    : ""
                 }
-                onChange={() => toggleSite(s.id)}
-              />
-              {s.address}
-            </label>
-          ))}
-          <p className="menu-section">Lease comps</p>
-          <button
-            type="button"
-            className={focus === "comparable" && compsAll ? "active" : ""}
-            onClick={() => {
-              setFocus("comparable")
-              setSelectedLeaseIndexes([...ALL_LEASE_INDEXES])
-            }}
-          >
-            All comps
-          </button>
-          {tradeArea.leases.map((l, i) => (
-            <label
-              key={l.tenant}
-              className={
-                focus === "comparable" &&
-                !compsAll &&
-                selectedLeaseIndexes.includes(i)
-                  ? "active"
-                  : ""
-              }
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    focus === "site" &&
+                    (sitesAll || selectedSiteIds.includes(s.id))
+                  }
+                  onChange={() => toggleSite(s.id)}
+                />
+                {s.address}
+              </label>
+            ))}
+            <p className="menu-section">Lease comps</p>
+            <button
+              type="button"
+              className={focus === "comparable" && compsAll ? "active" : ""}
+              onClick={() => {
+                setFocus("comparable")
+                setSelectedLeaseIndexes([...ALL_LEASE_INDEXES])
+              }}
             >
-              <input
-                type="checkbox"
-                checked={
+              All comps
+            </button>
+            {tradeArea.leases.map((l, i) => (
+              <label
+                key={l.tenant}
+                className={
                   focus === "comparable" &&
-                  (compsAll || selectedLeaseIndexes.includes(i))
+                  !compsAll &&
+                  selectedLeaseIndexes.includes(i)
+                    ? "active"
+                    : ""
                 }
-                onChange={() => toggleComp(i)}
-              />
-              {i + 1}. {l.tenant}
-            </label>
-          ))}
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    focus === "comparable" &&
+                    (compsAll || selectedLeaseIndexes.includes(i))
+                  }
+                  onChange={() => toggleComp(i)}
+                />
+                {i + 1}. {l.tenant}
+              </label>
+            ))}
           </div>
         ) : null}
       </div>
-      {hint ? <p className="multi-select-hint">{hint}</p> : null}
     </div>
   )
 }
@@ -1722,8 +1721,14 @@ export default function App() {
         <HomeHero onExplore={() => scrollToId("sites-corridors")} />
 
         <section className="view-section" id="sites-corridors">
-          <header className="view-header sites-header-stack">
-            <h2>Sites &amp; corridors</h2>
+          <header className="view-header with-filter">
+            <div className="view-header-copy">
+              <h2>Sites &amp; corridors</h2>
+              <p>
+                Starts on 835 Washington St. Use the selector for sites or lease
+                comps, or click markers on the map.
+              </p>
+            </div>
             <SitesCompsSelect
               focus={sitesFocus}
               setFocus={setSitesFocus}
@@ -1731,7 +1736,6 @@ export default function App() {
               setSelectedSiteIds={setSelectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
               setSelectedLeaseIndexes={setSelectedLeaseIndexes}
-              hint="Select a site or lease comp here, or click its marker on the map."
             />
           </header>
 
