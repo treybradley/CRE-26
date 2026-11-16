@@ -1651,37 +1651,46 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
   return (
     <section className="hero" id="home">
       <div className="hero-grid" aria-hidden="true" />
-      <div className="hero-inner">
-        <img
-          src={`${import.meta.env.BASE_URL}sir-logo.svg`}
-          alt="Sotheby’s International Realty"
-        />
-        <h1>{SITE_TITLE}</h1>
-        <p className="hero-dek">
-          An interactive walk through Manhattan sites and neighborhoods — where
-          the target neighborhoods sit, who lives and works there, and how the
-          three target corridors compare. Every figure was manually picked and
-          verified for this presentation from{" "}
-          <a className="hero-inline-link" href="#sources">
-            References &amp; Sources
-          </a>
-          .
-        </p>
-        <div className="hero-actions">
-          <button type="button" className="hero-action" onClick={onExplore}>
-            Explore Sites &amp; Corridors <span>↓</span>
-          </button>
-          <button
-            type="button"
-            className="hero-action ghost"
-            onClick={() => scrollToId("neighborhoods")}
-          >
-            Neighborhoods <span>↓</span>
-          </button>
+      <div className="hero-layout">
+        <div className="hero-inner">
+          <img
+            className="hero-logo"
+            src={`${import.meta.env.BASE_URL}sir-logo.svg`}
+            alt="Sotheby’s International Realty"
+          />
+          <h1>{SITE_TITLE}</h1>
+          <p className="hero-dek">
+            An interactive walk through Manhattan sites and neighborhoods —
+            where the target neighborhoods sit, who lives and works there, and
+            how the three target corridors compare. Every figure was manually
+            picked and verified for this presentation from{" "}
+            <a className="hero-inline-link" href="#sources">
+              References &amp; Sources
+            </a>
+            .
+          </p>
+          <div className="hero-actions">
+            <button type="button" className="hero-action" onClick={onExplore}>
+              Explore Sites &amp; Corridors <span>↓</span>
+            </button>
+            <button
+              type="button"
+              className="hero-action ghost"
+              onClick={() => scrollToId("neighborhoods")}
+            >
+              Neighborhoods <span>↓</span>
+            </button>
+          </div>
+          <div className="hero-meta">
+            <span>Updated {tradeArea.updated}</span>
+            <span>26 Neighborhoods · 3 Target Corridors</span>
+          </div>
         </div>
-        <div className="hero-meta">
-          <span>Updated {tradeArea.updated}</span>
-          <span>26 Neighborhoods · 3 Target Corridors</span>
+        <div className="hero-map" aria-hidden="true">
+          <img
+            src={`${import.meta.env.BASE_URL}manhattan-locator.png`}
+            alt=""
+          />
         </div>
       </div>
     </section>
