@@ -319,7 +319,7 @@ function TradeMap({
     const map = L.map(containerRef.current, {
       scrollWheelZoom: true,
       zoomControl: true,
-    }).setView([40.732, -73.992], mode === "sites" ? 14 : 13.25)
+    }).setView([40.732, -73.992], mode === "sites" ? 13 : 15.25)
 
     L.tileLayer(BASEMAP_URL, {
       attribution: BASEMAP_ATTR,
@@ -358,7 +358,7 @@ function TradeMap({
         if (modeRef.current === "neighborhoods") {
           map.fitBounds(tracts.getBounds(), {
             padding: [56, 56],
-            maxZoom: 13.5,
+            maxZoom: 15.5,
           })
         }
 
@@ -525,7 +525,7 @@ function TradeMap({
     }
 
     if (single) {
-      map.setView(single, 15, { animate })
+      map.setView(single, 14, { animate })
       return
     }
     const includeComps = layers.leases
@@ -537,7 +537,7 @@ function TradeMap({
             ...(includeComps ? LEASE_PINS.map((p) => p.position) : []),
           ],
     )
-    map.fitBounds(bounds, { padding: [72, 72], maxZoom: 14, animate })
+    map.fitBounds(bounds, { padding: [72, 72], maxZoom: 13, animate })
   }, [mode, focus, layers.leases, selectedSiteIds, selectedLeaseIndexes])
 
   return <div ref={containerRef} className="map-canvas" />
@@ -1865,11 +1865,10 @@ export default function App() {
               ))}
             </div>
             <div
-              className="map-legend-keys inline map-legend"
+              className="map-legend-keys map-legend"
               role="group"
-              aria-label="Map Legend"
+              aria-label="Target Corridors and Lease Comps"
             >
-              <span className="key-label">Map Legend</span>
               <div className="site-key">
                 <span className="key-label">Target Corridors</span>
                 {tradeArea.sites.map((s) => (
@@ -1886,24 +1885,21 @@ export default function App() {
                 ))}
               </div>
               {siteLayers.leases ? (
-                <>
-                  <span className="legend-sep" aria-hidden="true" />
-                  <div className="site-key comps-key">
-                    <span className="key-label">Lease Comps</span>
-                    {tradeArea.leases.map((l, i) => (
-                      <button
-                        key={l.tenant}
-                        type="button"
-                        className={`legend-btn${leaseHighlight && selectedLeaseIndexes.includes(i) ? " active" : ""}`}
-                        title={`Open lease comp: ${l.tenant}`}
-                        onClick={() => pickLease(i)}
-                      >
-                        <span className="lease-pin legend-pin">{i + 1}</span>
-                        {l.tenant}
-                      </button>
-                    ))}
-                  </div>
-                </>
+                <div className="site-key comps-key">
+                  <span className="key-label">Lease Comps</span>
+                  {tradeArea.leases.map((l, i) => (
+                    <button
+                      key={l.tenant}
+                      type="button"
+                      className={`legend-btn${leaseHighlight && selectedLeaseIndexes.includes(i) ? " active" : ""}`}
+                      title={`Open lease comp: ${l.tenant}`}
+                      onClick={() => pickLease(i)}
+                    >
+                      <span className="lease-pin legend-pin">{i + 1}</span>
+                      {l.tenant}
+                    </button>
+                  ))}
+                </div>
               ) : null}
             </div>
           </div>
