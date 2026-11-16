@@ -1614,9 +1614,7 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
 }
 
 export default function App() {
-  const [tocOpen, setTocOpen] = useState(
-    () => typeof window !== "undefined" && window.innerWidth >= 900,
-  )
+  const [tocOpen, setTocOpen] = useState(false)
   const [active, setActive] = useState("home")
   const [hovered, setHovered] = useState<Neighborhood | null>(null)
   const [selectedHoodNames, setSelectedHoodNames] = useState<string[]>([
