@@ -206,8 +206,8 @@
   background:
     radial-gradient(
       circle at 75% 50%,
-      #356f9e 0%,
-      rgba(53, 111, 158, 0.45) 28%,
+      #2a5478 0%,
+      rgba(42, 84, 120, 0.42) 28%,
       transparent 62%
     ),
     linear-gradient(135deg, #102b43 0%, var(--blue) 58%, #173e61 100%);
