@@ -217,7 +217,7 @@ function TradeMap({
     const map = L.map(containerRef.current, {
       scrollWheelZoom: true,
       zoomControl: true,
-    }).setView([40.732, -73.992], mode === "sites" ? 14.5 : 13)
+    }).setView([40.732, -73.992], mode === "sites" ? 14.5 : 14)
 
     L.tileLayer(BASEMAP_URL, {
       attribution: BASEMAP_ATTR,
@@ -278,6 +278,7 @@ function TradeMap({
             padding: [40, 40],
             maxZoom: 15,
           })
+          map.zoomIn()
         }
 
         const buckets: Record<string, LatLngTuple[]> = {}
@@ -553,9 +554,6 @@ const ALL_HOOD_NAMES = tradeArea.neighborhoods.map((n) => n.name)
 const ALL_LEASE_INDEXES = tradeArea.leases.map((_, i) => i)
 const DEFAULT_SITE_ID =
   tradeArea.sites.find((s) => s.id === "washington")?.id ?? ALL_SITE_IDS[0]
-const DEFAULT_HOOD_NAME =
-  tradeArea.neighborhoods.find((n) => n.name === "Meatpacking District")
-    ?.name ?? ALL_HOOD_NAMES[0]
 
 /** Offset from site markers so comps stay clickable (Wake and Late ≈ Lafayette). */
 const LEASE_PINS: { leaseIndex: number; position: LatLngTuple }[] = [
@@ -1618,7 +1616,7 @@ export default function App() {
   const [active, setActive] = useState("home")
   const [hovered, setHovered] = useState<Neighborhood | null>(null)
   const [selectedHoodNames, setSelectedHoodNames] = useState<string[]>([
-    DEFAULT_HOOD_NAME,
+    ...ALL_HOOD_NAMES,
   ])
   const [sitesFocus, setSitesFocus] = useState<SitesFocus>("site")
   const [siteTab, setSiteTab] = useState<SiteChartTab>("1")
@@ -1638,7 +1636,7 @@ export default function App() {
   })
   const [hoodLayers, setHoodLayers] = useState<Record<LayerKey, boolean>>({
     income: true,
-    labels: true,
+    labels: false,
     radii: false,
     sites: true,
     leases: false,
@@ -1811,9 +1809,8 @@ export default function App() {
               <p className="eyebrow">View II</p>
               <h2>Neighborhoods</h2>
               <p>
-                Starts on Meatpacking District. Click the map or use the
-                selector to focus one or several — All shows the comparison
-                table.
+                All 26 neighborhoods by default as a comparison table. Click the
+                map or use the selector to focus one or several.
               </p>
             </div>
             <MultiSelect
@@ -1848,6 +1845,18 @@ export default function App() {
                   />
                   {label}
                 </label>
+              ))}
+            </div>
+            <div
+              className="map-legend-keys inline income-key"
+              aria-label="Median household income shading"
+            >
+              <span className="key-label">Median HH income</span>
+              {INCOME_STOPS.map((stop) => (
+                <span key={stop.label} className="income-swatch">
+                  <i style={{ background: stop.color }} />
+                  {stop.label}
+                </span>
               ))}
             </div>
           </div>
