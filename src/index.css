@@ -297,13 +297,14 @@
 }
 
 .hero h1 {
-  max-width: 18ch;
+  max-width: none;
   margin: 0;
   color: white;
   font-size: clamp(26px, 3.2vw, 42px);
   line-height: 1.15;
   font-weight: 500;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .hero-dek {
