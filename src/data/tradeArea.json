@@ -1,0 +1,1227 @@
+{
+  "updated": "November 15, 2026",
+  "sites": [
+    {
+      "id": "university",
+      "corridor": "University Pl.",
+      "address": "1 University Pl.",
+      "position": [
+        40.73104,
+        -73.99463
+      ],
+      "marker": {
+        "shape": "circle",
+        "color": "#c62828",
+        "label": "1 University Pl"
+      },
+      "population5min": "15,184",
+      "population10min": "52,878",
+      "employees025": "27,243",
+      "employees05": "100,548",
+      "students05": "67,970",
+      "hotels5min": "262",
+      "hotels10min": "650"
+    },
+    {
+      "id": "lafayette",
+      "corridor": "Lafayette St.",
+      "address": "372 Lafayette St.",
+      "position": [
+        40.72751,
+        -73.99358
+      ],
+      "marker": {
+        "shape": "star",
+        "color": "#c9a227",
+        "label": "372 Lafayette St"
+      },
+      "population5min": "13,098",
+      "population10min": "54,826",
+      "employees025": "24,915",
+      "employees05": "84,495",
+      "students05": "58,181",
+      "hotels5min": "315",
+      "hotels10min": "1,383"
+    },
+    {
+      "id": "washington",
+      "corridor": "Washington St.",
+      "address": "835 Washington St.",
+      "position": [
+        40.74012,
+        -74.0079
+      ],
+      "marker": {
+        "shape": "triangle",
+        "color": "#2e7d32",
+        "label": "835 Washington St"
+      },
+      "population5min": "3,757",
+      "population10min": "19,727",
+      "employees025": "26,470",
+      "employees05": "53,453",
+      "students05": "N/A",
+      "hotels5min": "703",
+      "hotels10min": "997"
+    }
+  ],
+  "neighborhoods": [
+    {
+      "name": "Hudson Yards",
+      "group": "Midtown South",
+      "age": {
+        "18-24": "20.4%",
+        "25-34": "31.2%",
+        "35-44": "20.5%",
+        "45-54": "12.3%",
+        "55-64": "7.1%",
+        "65+": "8.5%"
+      },
+      "householdsWithKids": "6.6%",
+      "hhOver150k": "55.0%",
+      "hhOver200k": "46.6%",
+      "population": "4,875",
+      "employees": "51,664",
+      "askingRent": "N/A",
+      "medianHhIncome": "$183K",
+      "averageHhIncome": "$321K",
+      "bachelorsOrHigher": "79.9%",
+      "topJobSectors": "Professional Services 18%, Finance & Insurance 18%, Information 17%",
+      "anchorCompanies": "BlackRock; Wells Fargo; KKR; Point72; Meta; Warner Bros. Discovery; Milbank; Covington & Burling; Cooley; Tapestry; L’Oréal USA; Equinox",
+      "medianIncomeSort": 183000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "410",
+          "12:30-1:30 PM": "440",
+          "5-6 PM": "520"
+        },
+        "weekend": {
+          "8-9 AM": "140",
+          "12:30-1:30 PM": "350",
+          "5-6 PM": "380"
+        }
+      },
+      "tracts": [
+        "99.03",
+        "103"
+      ]
+    },
+    {
+      "name": "Chelsea",
+      "group": "Midtown South",
+      "age": {
+        "18-24": "8.4%",
+        "25-34": "26.3%",
+        "35-44": "13.0%",
+        "45-54": "12.9%",
+        "55-64": "18.7%",
+        "65+": "20.8%"
+      },
+      "householdsWithKids": "9.7%",
+      "hhOver150k": "43.3%",
+      "hhOver200k": "31.6%",
+      "population": "24,439",
+      "employees": "39,710",
+      "askingRent": "N/A",
+      "medianHhIncome": "$118K",
+      "averageHhIncome": "$214K",
+      "bachelorsOrHigher": "72.3%",
+      "topJobSectors": "Information 33%, Professional Services 25%, Accommodation & Food 8%",
+      "anchorCompanies": "Google; IAC; NY1; Ralph Lauren; Populous; Diller Scofidio + Renfro",
+      "medianIncomeSort": 118000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "380",
+          "12:30-1:30 PM": "480",
+          "5-6 PM": "550"
+        },
+        "weekend": {
+          "8-9 AM": "170",
+          "12:30-1:30 PM": "490",
+          "5-6 PM": "550"
+        }
+      },
+      "tracts": [
+        "83",
+        "87",
+        "89",
+        "93"
+      ]
+    },
+    {
+      "name": "NoMad",
+      "group": "Midtown South",
+      "age": {
+        "18-24": "13.4%",
+        "25-34": "30.9%",
+        "35-44": "22.2%",
+        "45-54": "11.5%",
+        "55-64": "12.9%",
+        "65+": "9.1%"
+      },
+      "householdsWithKids": "7.4%",
+      "hhOver150k": "66.9%",
+      "hhOver200k": "55.4%",
+      "population": "9,482",
+      "employees": "99,755",
+      "askingRent": "N/A",
+      "medianHhIncome": "$213K",
+      "averageHhIncome": "$308K",
+      "bachelorsOrHigher": "83.2%",
+      "topJobSectors": "Health Care 15%, Professional Services 15%, Admin & Support 11%",
+      "anchorCompanies": "TransPerfect; Gunderson Dettmer; Zillow",
+      "medianIncomeSort": 213000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "1,100",
+          "12:30-1:30 PM": "1,250",
+          "5-6 PM": "1,640"
+        },
+        "weekend": {
+          "8-9 AM": "230",
+          "12:30-1:30 PM": "810",
+          "5-6 PM": "910"
+        }
+      },
+      "tracts": [
+        "74",
+        "76",
+        "84"
+      ]
+    },
+    {
+      "name": "Flatiron District",
+      "group": "Midtown South",
+      "age": {
+        "18-24": "4.5%",
+        "25-34": "34.9%",
+        "35-44": "16.4%",
+        "45-54": "12.8%",
+        "55-64": "13.0%",
+        "65+": "18.4%"
+      },
+      "householdsWithKids": "10.7%",
+      "hhOver150k": "52.3%",
+      "hhOver200k": "43.3%",
+      "population": "12,261",
+      "employees": "72,675",
+      "askingRent": "N/A",
+      "medianHhIncome": "$168K",
+      "averageHhIncome": "$304K",
+      "bachelorsOrHigher": "80.5%",
+      "topJobSectors": "Professional Services 22%, Finance & Insurance 14%, Information 13%",
+      "anchorCompanies": "Tiffany & Co.; Sony; UBS; Pinterest; WME; Legora",
+      "medianIncomeSort": 168000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "790",
+          "12:30-1:30 PM": "1,010",
+          "5-6 PM": "1,170"
+        },
+        "weekend": {
+          "8-9 AM": "240",
+          "12:30-1:30 PM": "760",
+          "5-6 PM": "910"
+        }
+      },
+      "tracts": [
+        "54",
+        "56",
+        "58"
+      ]
+    },
+    {
+      "name": "Gramercy Park",
+      "group": "Midtown South",
+      "age": {
+        "18-24": "3.9%",
+        "25-34": "16.9%",
+        "35-44": "19.4%",
+        "45-54": "18.1%",
+        "55-64": "10.6%",
+        "65+": "31.0%"
+      },
+      "householdsWithKids": "29.1%",
+      "hhOver150k": "59.2%",
+      "hhOver200k": "50.9%",
+      "population": "5,077",
+      "employees": "508",
+      "askingRent": "N/A",
+      "medianHhIncome": "$203K",
+      "averageHhIncome": "$307K",
+      "bachelorsOrHigher": "87.8%",
+      "topJobSectors": "N/A",
+      "anchorCompanies": "Baruch College |",
+      "medianIncomeSort": 203000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "120",
+          "12:30-1:30 PM": "160",
+          "5-6 PM": "130"
+        },
+        "weekend": {
+          "8-9 AM": "120",
+          "12:30-1:30 PM": "110",
+          "5-6 PM": "160"
+        }
+      },
+      "tracts": [
+        "60"
+      ]
+    },
+    {
+      "name": "Union Square",
+      "group": "Midtown South",
+      "age": {
+        "18-24": "6.1%",
+        "25-34": "30.5%",
+        "35-44": "22.7%",
+        "45-54": "14.5%",
+        "55-64": "8.9%",
+        "65+": "17.3%"
+      },
+      "householdsWithKids": "14.3%",
+      "hhOver150k": "62.4%",
+      "hhOver200k": "52.4%",
+      "population": "4,774",
+      "employees": "20,308",
+      "askingRent": "N/A",
+      "medianHhIncome": "$205K",
+      "averageHhIncome": "$284K",
+      "bachelorsOrHigher": "90.9%",
+      "topJobSectors": "Utilities 31%, Professional Services 14%, Transportation 13%",
+      "anchorCompanies": "Con Edison; Mount Sinai Union Square",
+      "medianIncomeSort": 205000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "470",
+          "12:30-1:30 PM": "580",
+          "5-6 PM": "670"
+        },
+        "weekend": {
+          "8-9 AM": "180",
+          "12:30-1:30 PM": "550",
+          "5-6 PM": "640"
+        }
+      },
+      "tracts": [
+        "50"
+      ]
+    },
+    {
+      "name": "TriBeCa (Waterfront Core)",
+      "group": "Downtown",
+      "age": {
+        "18-24": "6.0%",
+        "25-34": "25.5%",
+        "35-44": "23.9%",
+        "45-54": "24.3%",
+        "55-64": "7.6%",
+        "65+": "12.7%"
+      },
+      "householdsWithKids": "28.2%",
+      "hhOver150k": "73.0%",
+      "hhOver200k": "64.5%",
+      "population": "13,392",
+      "employees": "54,838",
+      "askingRent": "N/A",
+      "medianHhIncome": "$250K+",
+      "averageHhIncome": "$512K",
+      "bachelorsOrHigher": "90.5%",
+      "topJobSectors": "Finance & Insurance 24%, Professional Services 19%, Public Administration 14%",
+      "anchorCompanies": "Citigroup; BNY; BMCC",
+      "medianIncomeSort": 250000,
+      "medianTopCoded": true,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "640",
+          "12:30-1:30 PM": "720",
+          "5-6 PM": "830"
+        },
+        "weekend": {
+          "8-9 AM": "170",
+          "12:30-1:30 PM": "640",
+          "5-6 PM": "680"
+        }
+      },
+      "tracts": [
+        "21",
+        "33"
+      ]
+    },
+    {
+      "name": "TriBeCa (Broadway/Civic)",
+      "group": "Downtown",
+      "age": {
+        "18-24": "47.0%",
+        "25-34": "19.5%",
+        "35-44": "10.9%",
+        "45-54": "5.9%",
+        "55-64": "9.6%",
+        "65+": "7.1%"
+      },
+      "householdsWithKids": "11.2%",
+      "hhOver150k": "59.1%",
+      "hhOver200k": "49.0%",
+      "population": "2,910",
+      "employees": "28,029",
+      "askingRent": "N/A",
+      "medianHhIncome": "$189K",
+      "averageHhIncome": "$355K",
+      "bachelorsOrHigher": "69.5%",
+      "topJobSectors": "Public Administration 68%, Health Care 16%, Professional Services 4%",
+      "anchorCompanies": "Javits Federal Building; Ted Weiss Federal Building; New York State Insurance Fund",
+      "medianIncomeSort": 189000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "510",
+          "12:30-1:30 PM": "600",
+          "5-6 PM": "660"
+        },
+        "weekend": {
+          "8-9 AM": "160",
+          "12:30-1:30 PM": "520",
+          "5-6 PM": "570"
+        }
+      },
+      "tracts": [
+        "31"
+      ]
+    },
+    {
+      "name": "West Village",
+      "group": "Downtown",
+      "age": {
+        "18-24": "5.7%",
+        "25-34": "33.2%",
+        "35-44": "13.9%",
+        "45-54": "15.7%",
+        "55-64": "13.5%",
+        "65+": "18.1%"
+      },
+      "householdsWithKids": "5.9%",
+      "hhOver150k": "53.7%",
+      "hhOver200k": "45.0%",
+      "population": "19,543",
+      "employees": "15,500",
+      "askingRent": "N/A",
+      "medianHhIncome": "$181K",
+      "averageHhIncome": "$270K",
+      "bachelorsOrHigher": "82.9%",
+      "topJobSectors": "Accommodation & Food 29%, Professional Services 15%, Retail Trade 11%",
+      "anchorCompanies": "Dining & boutique corridor (Bleecker St.)",
+      "medianIncomeSort": 181000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "300",
+          "12:30-1:30 PM": "380",
+          "5-6 PM": "450"
+        },
+        "weekend": {
+          "8-9 AM": "160",
+          "12:30-1:30 PM": "480",
+          "5-6 PM": "520"
+        }
+      },
+      "tracts": [
+        "67",
+        "73",
+        "75",
+        "77"
+      ]
+    },
+    {
+      "name": "Greenwich Village",
+      "group": "Downtown",
+      "age": {
+        "18-24": "26.1%",
+        "25-34": "23.5%",
+        "35-44": "14.3%",
+        "45-54": "8.9%",
+        "55-64": "9.4%",
+        "65+": "17.8%"
+      },
+      "householdsWithKids": "9.3%",
+      "hhOver150k": "53.0%",
+      "hhOver200k": "44.2%",
+      "population": "18,624",
+      "employees": "32,804",
+      "askingRent": "N/A",
+      "medianHhIncome": "$168K",
+      "averageHhIncome": "$283K",
+      "bachelorsOrHigher": "91.7%",
+      "topJobSectors": "Education 45%, Accommodation & Food 14%, Information 8%",
+      "anchorCompanies": "New York University; The New School; Meta; Dining corridor (Bleecker, MacDougal, Washington Square area)",
+      "medianIncomeSort": 168000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "400",
+          "12:30-1:30 PM": "520",
+          "5-6 PM": "600"
+        },
+        "weekend": {
+          "8-9 AM": "180",
+          "12:30-1:30 PM": "600",
+          "5-6 PM": "620"
+        }
+      },
+      "tracts": [
+        "57",
+        "59",
+        "61",
+        "65"
+      ]
+    },
+    {
+      "name": "Hudson Square",
+      "group": "Downtown",
+      "age": {
+        "18-24": "6.6%",
+        "25-34": "26.4%",
+        "35-44": "22.9%",
+        "45-54": "10.2%",
+        "55-64": "13.6%",
+        "65+": "20.2%"
+      },
+      "householdsWithKids": "26.9%",
+      "hhOver150k": "64.1%",
+      "hhOver200k": "58.6%",
+      "population": "4,417",
+      "employees": "42,255",
+      "askingRent": "N/A",
+      "medianHhIncome": "$236K+",
+      "averageHhIncome": "$532K",
+      "bachelorsOrHigher": "91.1%",
+      "topJobSectors": "Professional Services 30%, Information 19%, Accommodation & Food 7%",
+      "anchorCompanies": "Google; Disney / ABC; Anthropic; Horizon Media; Squarespace; Edelman; Havas; Warby Parker",
+      "medianIncomeSort": 236000,
+      "medianTopCoded": true,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "430",
+          "12:30-1:30 PM": "570",
+          "5-6 PM": "660"
+        },
+        "weekend": {
+          "8-9 AM": "160",
+          "12:30-1:30 PM": "610",
+          "5-6 PM": "630"
+        }
+      },
+      "tracts": [
+        "37",
+        "45"
+      ]
+    },
+    {
+      "name": "SoHo",
+      "group": "Downtown",
+      "age": {
+        "18-24": "7.4%",
+        "25-34": "29.4%",
+        "35-44": "14.5%",
+        "45-54": "18.0%",
+        "55-64": "7.2%",
+        "65+": "23.5%"
+      },
+      "householdsWithKids": "9.6%",
+      "hhOver150k": "49.6%",
+      "hhOver200k": "29.3%",
+      "population": "6,390",
+      "employees": "20,234",
+      "askingRent": "N/A",
+      "medianHhIncome": "$148K",
+      "averageHhIncome": "$233K",
+      "bachelorsOrHigher": "89.3%",
+      "topJobSectors": "Information 22%, Retail Trade 21%, Accommodation & Food 14%",
+      "anchorCompanies": "Scholastic; Zocdoc; Luxury retail & dining corridor (Broadway, Prince, Spring)",
+      "medianIncomeSort": 148000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "400",
+          "12:30-1:30 PM": "730",
+          "5-6 PM": "750"
+        },
+        "weekend": {
+          "8-9 AM": "180",
+          "12:30-1:30 PM": "880",
+          "5-6 PM": "770"
+        }
+      },
+      "tracts": [
+        "47",
+        "49"
+      ]
+    },
+    {
+      "name": "NoHo",
+      "group": "Downtown",
+      "age": {
+        "18-24": "13.6%",
+        "25-34": "29.8%",
+        "35-44": "16.8%",
+        "45-54": "14.3%",
+        "55-64": "10.5%",
+        "65+": "14.9%"
+      },
+      "householdsWithKids": "18.5%",
+      "hhOver150k": "56.9%",
+      "hhOver200k": "51.1%",
+      "population": "7,245",
+      "employees": "8,881",
+      "askingRent": "N/A",
+      "medianHhIncome": "$202K",
+      "averageHhIncome": "$294K",
+      "bachelorsOrHigher": "87.3%",
+      "topJobSectors": "Professional Services 21%, Accommodation & Food 15%, Information 12%",
+      "anchorCompanies": "Civic Entertainment Group; Watershed; Findigs; Blackbird Labs; Noho Productions; Electric Theatre Collective; New York University; Retail & dining corridor (Bond St., Lafayette St.)",
+      "medianIncomeSort": 202000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "450",
+          "12:30-1:30 PM": "550",
+          "5-6 PM": "650"
+        },
+        "weekend": {
+          "8-9 AM": "180",
+          "12:30-1:30 PM": "680",
+          "5-6 PM": "710"
+        }
+      },
+      "tracts": [
+        "55.01",
+        "55.02"
+      ]
+    },
+    {
+      "name": "NoLiTa",
+      "group": "Downtown",
+      "age": {
+        "18-24": "11.1%",
+        "25-34": "34.4%",
+        "35-44": "19.7%",
+        "45-54": "8.4%",
+        "55-64": "8.6%",
+        "65+": "17.8%"
+      },
+      "householdsWithKids": "2.0%",
+      "hhOver150k": "36.8%",
+      "hhOver200k": "22.6%",
+      "population": "3,524",
+      "employees": "11,651",
+      "askingRent": "N/A",
+      "medianHhIncome": "$123K",
+      "averageHhIncome": "$172K",
+      "bachelorsOrHigher": "76.9%",
+      "topJobSectors": "Information 22%, Accommodation & Food 18%, Professional Services 18%",
+      "anchorCompanies": "OpenAI; Boutique, dining & hotel corridor (Elizabeth, Mulberry, Bowery)",
+      "medianIncomeSort": 123000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "490",
+          "12:30-1:30 PM": "680",
+          "5-6 PM": "830"
+        },
+        "weekend": {
+          "8-9 AM": "200",
+          "12:30-1:30 PM": "870",
+          "5-6 PM": "890"
+        }
+      },
+      "tracts": [
+        "43"
+      ]
+    },
+    {
+      "name": "Meatpacking District",
+      "group": "Downtown",
+      "age": {
+        "18-24": "3.3%",
+        "25-34": "29.6%",
+        "35-44": "12.7%",
+        "45-54": "17.2%",
+        "55-64": "13.9%",
+        "65+": "23.4%"
+      },
+      "householdsWithKids": "14.5%",
+      "hhOver150k": "51.1%",
+      "hhOver200k": "39.0%",
+      "population": "10,649",
+      "employees": "11,742",
+      "askingRent": "N/A",
+      "medianHhIncome": "$160K",
+      "averageHhIncome": "$270K",
+      "bachelorsOrHigher": "88.4%",
+      "topJobSectors": "Accommodation & Food 27%, Professional Services 17%, Retail Trade 11%",
+      "anchorCompanies": "Hotel, dining & luxury retail corridor (Gansevoort, Washington St., Ninth Ave.)",
+      "medianIncomeSort": 160000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "320",
+          "12:30-1:30 PM": "380",
+          "5-6 PM": "440"
+        },
+        "weekend": {
+          "8-9 AM": "160",
+          "12:30-1:30 PM": "420",
+          "5-6 PM": "470"
+        }
+      },
+      "tracts": [
+        "79",
+        "81"
+      ]
+    },
+    {
+      "name": "Billionaires’ Row",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "4.8%",
+        "25-34": "30.2%",
+        "35-44": "17.7%",
+        "45-54": "11.9%",
+        "55-64": "14.0%",
+        "65+": "21.3%"
+      },
+      "householdsWithKids": "5.8%",
+      "hhOver150k": "35.5%",
+      "hhOver200k": "24.0%",
+      "population": "9,952",
+      "employees": "7,863",
+      "askingRent": "N/A",
+      "medianHhIncome": "$108K",
+      "averageHhIncome": "$144K",
+      "bachelorsOrHigher": "80.3%",
+      "topJobSectors": "Information 23%, Real Estate 22%, Arts & Entertainment 12%",
+      "anchorCompanies": "Hearst; Soloviev Group; Vornado Realty Trust; Carnegie Hall; Apollo Global Management; Luxury hotel, private club & dining corridor (57th St., Central Park South, Fifth Ave.)",
+      "medianIncomeSort": 108000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "550",
+          "12:30-1:30 PM": "690",
+          "5-6 PM": "790"
+        },
+        "weekend": {
+          "8-9 AM": "200",
+          "12:30-1:30 PM": "610",
+          "5-6 PM": "630"
+        }
+      },
+      "tracts": [
+        "139"
+      ]
+    },
+    {
+      "name": "The Plaza District",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "5.7%",
+        "25-34": "25.6%",
+        "35-44": "15.4%",
+        "45-54": "12.4%",
+        "55-64": "13.0%",
+        "65+": "28.0%"
+      },
+      "householdsWithKids": "19.9%",
+      "hhOver150k": "55.5%",
+      "hhOver200k": "45.1%",
+      "population": "986",
+      "employees": "17,655",
+      "askingRent": "N/A",
+      "medianHhIncome": "$167K",
+      "averageHhIncome": "$315K",
+      "bachelorsOrHigher": "85.1%",
+      "topJobSectors": "Professional Services 48%, Finance & Insurance 18%, Admin & Support 6%",
+      "anchorCompanies": "Balyasny Asset Management; GoldenTree Asset Management; Bloomberg; Estée Lauder; Luxury retail & hotel corridor (Fifth Ave., Grand Army Plaza)",
+      "medianIncomeSort": 167000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "1,220",
+          "12:30-1:30 PM": "1,380",
+          "5-6 PM": "1,600"
+        },
+        "weekend": {
+          "8-9 AM": "230",
+          "12:30-1:30 PM": "800",
+          "5-6 PM": "900"
+        }
+      },
+      "tracts": [
+        "112.03"
+      ]
+    },
+    {
+      "name": "Central Park South",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "7.5%",
+        "25-34": "30.8%",
+        "35-44": "20.6%",
+        "45-54": "13.4%",
+        "55-64": "9.6%",
+        "65+": "18.0%"
+      },
+      "householdsWithKids": "5.8%",
+      "hhOver150k": "51.0%",
+      "hhOver200k": "35.8%",
+      "population": "6,146",
+      "employees": "4,064",
+      "askingRent": "N/A",
+      "medianHhIncome": "$157K",
+      "averageHhIncome": "$179K",
+      "bachelorsOrHigher": "81.0%",
+      "topJobSectors": "Accommodation & Food 30%, Education 17%, Professional Services 8%",
+      "anchorCompanies": "Luxury hotel & private club corridor (Central Park South, Fifth Ave. to Seventh Ave.)",
+      "medianIncomeSort": 157000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "390",
+          "12:30-1:30 PM": "550",
+          "5-6 PM": "620"
+        },
+        "weekend": {
+          "8-9 AM": "180",
+          "12:30-1:30 PM": "580",
+          "5-6 PM": "570"
+        }
+      },
+      "tracts": [
+        "133"
+      ]
+    },
+    {
+      "name": "Lincoln Square",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "10.9%",
+        "25-34": "12.2%",
+        "35-44": "17.4%",
+        "45-54": "14.9%",
+        "55-64": "15.9%",
+        "65+": "28.8%"
+      },
+      "householdsWithKids": "14.8%",
+      "hhOver150k": "55.1%",
+      "hhOver200k": "46.6%",
+      "population": "17,798",
+      "employees": "9,014",
+      "askingRent": "N/A",
+      "medianHhIncome": "$184K",
+      "averageHhIncome": "$259K",
+      "bachelorsOrHigher": "89.3%",
+      "topJobSectors": "Education 29%, Accommodation & Food 21%, Retail Trade 17%",
+      "anchorCompanies": "Fordham University; New York Institute of Technology; The Juilliard School; Ethical Culture Fieldston School; Deutsche Bank; Jazz at Lincoln Center; Hotel, dining & retail corridor (Columbus Circle, Broadway)",
+      "medianIncomeSort": 184000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "320",
+          "12:30-1:30 PM": "330",
+          "5-6 PM": "380"
+        },
+        "weekend": {
+          "8-9 AM": "130",
+          "12:30-1:30 PM": "260",
+          "5-6 PM": "300"
+        }
+      },
+      "tracts": [
+        "145",
+        "155.01",
+        "155.02"
+      ]
+    },
+    {
+      "name": "Riverside Blvd.",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "4.3%",
+        "25-34": "26.9%",
+        "35-44": "36.1%",
+        "45-54": "17.3%",
+        "55-64": "8.8%",
+        "65+": "6.6%"
+      },
+      "householdsWithKids": "28.6%",
+      "hhOver150k": "53.0%",
+      "hhOver200k": "44.3%",
+      "population": "12,451",
+      "employees": "3,755",
+      "askingRent": "N/A",
+      "medianHhIncome": "$172K",
+      "averageHhIncome": "$298K",
+      "bachelorsOrHigher": "82.4%",
+      "topJobSectors": "Education 50%, Arts & Entertainment 19%, Other Services 8%",
+      "anchorCompanies": "Collegiate School; The Abraham Joshua Heschel School; John Jay College of Criminal Justice; Private, public & early-childhood school cluster (West End Ave., Freedom Pl.); Waterfront park, fitness & dining corridor (Riverside Park South, Pier I, Waterline Square)",
+      "medianIncomeSort": 172000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "140",
+          "12:30-1:30 PM": "170",
+          "5-6 PM": "160"
+        },
+        "weekend": {
+          "8-9 AM": "120",
+          "12:30-1:30 PM": "140",
+          "5-6 PM": "170"
+        }
+      },
+      "tracts": [
+        "147",
+        "151.02"
+      ]
+    },
+    {
+      "name": "UWS Historic District",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "6.7%",
+        "25-34": "15.4%",
+        "35-44": "17.1%",
+        "45-54": "17.7%",
+        "55-64": "15.9%",
+        "65+": "27.1%"
+      },
+      "householdsWithKids": "19.2%",
+      "hhOver150k": "57.4%",
+      "hhOver200k": "47.3%",
+      "population": "16,321",
+      "employees": "16,901",
+      "askingRent": "N/A",
+      "medianHhIncome": "$187K",
+      "averageHhIncome": "$293K",
+      "bachelorsOrHigher": "88.3%",
+      "topJobSectors": "Information 32%, Arts & Entertainment 20%, Education 12%",
+      "anchorCompanies": "American Museum of Natural History; Private & public school cluster (Central Park West, West End Ave.)",
+      "medianIncomeSort": 187000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "410",
+          "12:30-1:30 PM": "460",
+          "5-6 PM": "540"
+        },
+        "weekend": {
+          "8-9 AM": "170",
+          "12:30-1:30 PM": "440",
+          "5-6 PM": "540"
+        }
+      },
+      "tracts": [
+        "149",
+        "153.01",
+        "153.02"
+      ]
+    },
+    {
+      "name": "Central Park West",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "3.5%",
+        "25-34": "14.4%",
+        "35-44": "19.4%",
+        "45-54": "18.9%",
+        "55-64": "15.9%",
+        "65+": "27.9%"
+      },
+      "householdsWithKids": "23.8%",
+      "hhOver150k": "56.7%",
+      "hhOver200k": "46.4%",
+      "population": "17,078",
+      "employees": "4,824",
+      "askingRent": "N/A",
+      "medianHhIncome": "$193K+",
+      "averageHhIncome": "$286K",
+      "bachelorsOrHigher": "88.8%",
+      "topJobSectors": "Retail Trade 19%, Real Estate 14%, Accommodation & Food 12%",
+      "anchorCompanies": "Longstanding eateries & gourmet grocery corridor (Columbus & Amsterdam Aves.); Pre-war co-op corridor (Central Park West)",
+      "medianIncomeSort": 193000,
+      "medianTopCoded": true,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "270",
+          "12:30-1:30 PM": "320",
+          "5-6 PM": "370"
+        },
+        "weekend": {
+          "8-9 AM": "150",
+          "12:30-1:30 PM": "320",
+          "5-6 PM": "360"
+        }
+      },
+      "tracts": [
+        "159",
+        "167"
+      ]
+    },
+    {
+      "name": "Lenox Hill",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "5.5%",
+        "25-34": "24.4%",
+        "35-44": "9.4%",
+        "45-54": "11.7%",
+        "55-64": "15.6%",
+        "65+": "33.4%"
+      },
+      "householdsWithKids": "15.1%",
+      "hhOver150k": "50.6%",
+      "hhOver200k": "41.8%",
+      "population": "26,735",
+      "employees": "40,999",
+      "askingRent": "N/A",
+      "medianHhIncome": "$154K",
+      "averageHhIncome": "$278K",
+      "bachelorsOrHigher": "83.5%",
+      "topJobSectors": "Health Care 42%, Education 10%, Accommodation & Food 8%",
+      "anchorCompanies": "Lenox Hill Hospital (Northwell Health); Manhattan Eye, Ear & Throat Hospital (Northwell Health); Memorial Sloan Kettering Cancer Center; NewYork-Presbyterian/Weill Cornell Medical Center; Hospital for Special Surgery; Hunter College; Northeastern University – New York City; The Rockefeller University; Luxury hotel & private club corridor (Park, Madison & Fifth Aves.) |",
+      "medianIncomeSort": 154000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "430",
+          "12:30-1:30 PM": "540",
+          "5-6 PM": "600"
+        },
+        "weekend": {
+          "8-9 AM": "170",
+          "12:30-1:30 PM": "560",
+          "5-6 PM": "540"
+        }
+      },
+      "tracts": [
+        "114.01",
+        "114.02",
+        "118",
+        "124",
+        "128"
+      ]
+    },
+    {
+      "name": "Upper East Side (Core)",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "6.7%",
+        "25-34": "27.6%",
+        "35-44": "15.9%",
+        "45-54": "15.1%",
+        "55-64": "13.4%",
+        "65+": "21.3%"
+      },
+      "householdsWithKids": "14.5%",
+      "hhOver150k": "43.6%",
+      "hhOver200k": "33.6%",
+      "population": "21,863",
+      "employees": "5,632",
+      "askingRent": "N/A",
+      "medianHhIncome": "$133K",
+      "averageHhIncome": "$210K",
+      "bachelorsOrHigher": "80.8%",
+      "topJobSectors": "Health Care 28%, Education 16%, Accommodation & Food 16%",
+      "anchorCompanies": "Medical office, physical therapy & cosmetic surgery corridor (Park, Madison & Lexington Aves.); Private K–12 school cluster (Park, Madison & Fifth Aves.); Luxury hotel, private club & dining corridor (Fifth, Madison & Park Aves.)",
+      "medianIncomeSort": 133000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "210",
+          "12:30-1:30 PM": "290",
+          "5-6 PM": "260"
+        },
+        "weekend": {
+          "8-9 AM": "140",
+          "12:30-1:30 PM": "410",
+          "5-6 PM": "280"
+        }
+      },
+      "tracts": [
+        "132.01",
+        "132.02",
+        "132.03",
+        "138"
+      ]
+    },
+    {
+      "name": "Carnegie Hill",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "3.3%",
+        "25-34": "24.3%",
+        "35-44": "14.6%",
+        "45-54": "13.7%",
+        "55-64": "10.3%",
+        "65+": "33.7%"
+      },
+      "householdsWithKids": "14.3%",
+      "hhOver150k": "52.9%",
+      "hhOver200k": "42.9%",
+      "population": "19,129",
+      "employees": "7,382",
+      "askingRent": "N/A",
+      "medianHhIncome": "$164K",
+      "averageHhIncome": "$287K",
+      "bachelorsOrHigher": "85.2%",
+      "topJobSectors": "Health Care 27%, Other Services 14%, Retail Trade 12%",
+      "anchorCompanies": "The Mount Sinai Hospital; 92NY; Houses of worship, civic & cultural institutions (Park & Fifth Aves., Museum Mile); Madison Ave. boutique & 86th St. grocery corridor",
+      "medianIncomeSort": 164000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "240",
+          "12:30-1:30 PM": "320",
+          "5-6 PM": "350"
+        },
+        "weekend": {
+          "8-9 AM": "140",
+          "12:30-1:30 PM": "430",
+          "5-6 PM": "320"
+        }
+      },
+      "tracts": [
+        "146.01",
+        "146.02",
+        "150.01",
+        "150.02"
+      ]
+    },
+    {
+      "name": "Yorkville / East End",
+      "group": "UWS & UES",
+      "age": {
+        "18-24": "8.8%",
+        "25-34": "22.8%",
+        "35-44": "17.1%",
+        "45-54": "14.6%",
+        "55-64": "13.2%",
+        "65+": "23.6%"
+      },
+      "householdsWithKids": "22.3%",
+      "hhOver150k": "52.1%",
+      "hhOver200k": "44.1%",
+      "population": "30,520",
+      "employees": "9,737",
+      "askingRent": "N/A",
+      "medianHhIncome": "$168K",
+      "averageHhIncome": "$306K",
+      "bachelorsOrHigher": "81.5%",
+      "topJobSectors": "Accommodation & Food 20%, Education 16%, Other Services 14%",
+      "anchorCompanies": "Asphalt Green; Hotel, chain & neighborhood dining corridor (Second & First Aves., 86th St.); Private & public school cluster (East End Ave., York Ave.); Houses of worship, civic & athletic institutions (East End Ave., Carl Schurz Park, East 79th to 92nd Sts.)",
+      "medianIncomeSort": 168000,
+      "medianTopCoded": false,
+      "footTraffic": {
+        "weekday": {
+          "8-9 AM": "320",
+          "12:30-1:30 PM": "420",
+          "5-6 PM": "470"
+        },
+        "weekend": {
+          "8-9 AM": "160",
+          "12:30-1:30 PM": "590",
+          "5-6 PM": "460"
+        }
+      },
+      "tracts": [
+        "126.01",
+        "126.02",
+        "134",
+        "140"
+      ]
+    }
+  ],
+  "leases": [
+    {
+      "tenant": "Wake and Late",
+      "address": "372 Lafayette St. / Lafayette St. & NoHo Corridors",
+      "sf": "2,350 SF",
+      "askingRent": "N/A",
+      "annualBaseRent": "$367.86 / SF",
+      "date": "Feb ’26",
+      "notes": "Taxes over base year; lease term not disclosed"
+    },
+    {
+      "tenant": "Hampton Chutney",
+      "address": "740 Broadway / NoHo Corridor",
+      "sf": "2,786 SF",
+      "askingRent": "N/A",
+      "annualBaseRent": "$200.00 / SF",
+      "date": "Apr ’25",
+      "notes": "13 years; taxes over base year"
+    },
+    {
+      "tenant": "Chubby Bowls",
+      "address": "809 Broadway / Greenwich Village Corridor",
+      "sf": "5,200 SF",
+      "askingRent": "$130.00 / SF",
+      "annualBaseRent": "N/A",
+      "date": "Mar ’25",
+      "notes": "15 years"
+    }
+  ],
+  "references": [
+    {
+      "no": "1",
+      "source": "RadiusMapper, Location Intelligence Reports, walking mode, generated November 13, 2026. Population data: U.S. Census Bureau, American Community Survey 5-Year Estimates, for census tracts touching each walking area. https://radiusmapper.com."
+    },
+    {
+      "no": "2",
+      "source": "U.S. Census Bureau, OnTheMap (LEHD), Work Area Profile Analysis, Total Primary Jobs, 2024. Accessed November 14, 2026. https://onthemap.ces.census.gov."
+    },
+    {
+      "no": "3",
+      "source": "National Center for Education Statistics, IPEDS, https://nces.ed.gov/ipeds/. New York University, Office of Institutional Research, Common Data Set 2025–2026, https://www.nyu.edu/content/dam/nyu/institutionalResearch/documents/cds-2025-2026/CDS%202025-2026%20FINAL%20(no%20G).pdf. The New School, Fall 2025 total enrollment of 8,843 (6,350 undergraduate, 2,493 graduate), U.S. News & World Report, https://www.usnews.com/best-colleges/the-new-school-20662/student-life, corroborated by The New School Free Press, March 26, 2026, https://www.newschoolfreepress.com/2026/03/26/the-new-school-expects-further-enrollment-drop-next-semester-despite-restructuring-efforts/. The Cooper Union, 2025–26 Facts, https://cooper.edu/admissions/facts. Cardozo School of Law, ABA Standard 509 Information Report, https://cardozo.yu.edu/sites/default/files/2025-12/Std509InfoReport_2025_0.pdf."
+    },
+    {
+      "no": "4",
+      "source": "Hotel room counts: Hyatt (Hyatt Union Square; The Standard, High Line); Soho House; Gansevoort Hotel Group; RH Investor Relations; The High Line Hotel; Firmdale Hotels; Dovetail + Co; Moxy East Village; The Mercer; Travel Weekly (The Bowery Hotel, PUBLIC, The Maritime Hotel); MICHELIN Guide; NYU Campus Travel; HotelPlanner (West Village Eurohostel); Perkins Eastman (The Standard, East Village); hotels-new-york.org (St. Marks Hotel); third-party booking sites (The Gatsby Hotel, Chelsea Pines Inn). Accessed November 13, 2026. Hotel candidates screened using NYC OpenData, Hotels Properties Citywide."
+    },
+    {
+      "no": "5",
+      "source": "CBRE Research, Manhattan Retail Figures, Q3 2026, Figure 13; Cushman & Wakefield, Manhattan Retail MarketBeat, Q3 2026; Real Estate Board of New York, Manhattan Retail Report, H1 2026."
+    },
+    {
+      "no": "6",
+      "source": "U.S. Census Bureau, American Community Survey 5-Year Estimates (2020–2024), Detailed Tables B01003 (Total Population), B01001 (Sex by Age), B11005 (Households by Presence of People Under 18 Years) and B19001 (Household Income in the Past 12 Months), census tracts, New York County, New York. Retrieved November 7, 2026 from the Census Bureau Data API: api.census.gov/data/2024/acs/acs5. Tables B15003 (Educational Attainment for the Population 25 Years and Over) and B19013 (Median Household Income in the Past 12 Months) retrieved November 12, 2026, and table B19025 (Aggregate Household Income in the Past 12 Months) retrieved November 13, 2026, from data.census.gov."
+    },
+    {
+      "no": "7",
+      "source": "U.S. Census Bureau, LEHD Origin-Destination Employment Statistics (LODES), Version 8, Workplace. Area Characteristics (WAC), New York, Primary Jobs, 2024, tabulated by census tract. Retrieved November 7, 2026 from lehd.ces.census.gov/data/lodes/LODES8/ny/wac/."
+    },
+    {
+      "no": "8",
+      "source": "Source to be added once the rents are pulled (Cushman & Wakefield MarketBeat and/or JLL)."
+    },
+    {
+      "no": "9",
+      "source": "Sevtsuk, A., Basu, R., Liu, L., Alhassan, A., & Kollar, J. (2026). Spatial distribution of foot traffic in New York City and applications for urban planning. Nature Cities, 3, 136–145. https://doi.org/10.1038/s44284-025-00383-y. Data: MIT City Form Lab, NYC Walks, NYC_pednetwork_estimates_counts_2018-2019.geojson. https://cityform.mit.edu/projects/nycwalks. Neighborhood averages are length-weighted means of segment estimates calculated for this analysis. Accessed November 12, 2026."
+    },
+    {
+      "no": "10",
+      "source": "Wells Fargo Commercial Mortgage Securities, Inc., Form FWP, WFCM 2026-5C10 Structural and Collateral Term Sheet, Loan #5, 26 Astor Pl. (Astor Pl. Retail), “Comparable Retail Leases,” page 53 (appraisal dated April 3, 2026). Accession No. 0001539497-26-001656. https://www.sec.gov/Archives/edgar/data/2136440/000153949726001656/n5926_x2-premrktts.htm. Accessed November 14, 2026."
+    }
+  ],
+  "hoverLine": "Estimate. Neighborhood figures are added up from U.S. Census Bureau census tracts (small statistical areas of about 1,200 to 8,000 people). Figures cover selected census tracts in each neighborhood that exclude public and lower-income housing complexes (such as NYCHA developments); they do not describe each neighborhood as a whole.",
+  "clickSourceLine": "Estimate. Neighborhood figures are added up from U.S. Census Bureau census tracts (small statistical areas of about 1,200 to 8,000 people). Figures cover selected census tracts in each neighborhood that exclude public and lower-income housing complexes (such as NYCHA developments); they do not describe each neighborhood as a whole. American Community Survey 2020-2024.",
+  "credits": {
+    "osm": "© OpenStreetMap contributors",
+    "census": "U.S. Census Bureau, American Community Survey 5-year estimates 2020–2024; U.S. Census Bureau cartographic boundary files (simplified for display only).",
+    "footTraffic": "Foot traffic is modeled (MIT City Form Lab, NYC Walks / Sevtsuk et al.)."
+  },
+  "gramercyNote": "Gramercy Park is one census tract with 135 sidewalk segments, so its figures may not be comparable with other neighborhoods."
+}
