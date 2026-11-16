@@ -764,6 +764,7 @@ function SitesCompsSelect({
   setSelectedSiteIds,
   selectedLeaseIndexes,
   setSelectedLeaseIndexes,
+  hint,
 }: {
   focus: SitesFocus
   setFocus: (f: SitesFocus) => void
@@ -771,6 +772,7 @@ function SitesCompsSelect({
   setSelectedSiteIds: (ids: string[]) => void
   selectedLeaseIndexes: number[]
   setSelectedLeaseIndexes: (indexes: number[]) => void
+  hint?: string
 }) {
   const [open, setOpen] = useState(false)
   const rootRef = useMenuDismiss(open, () => setOpen(false))
@@ -834,32 +836,33 @@ function SitesCompsSelect({
   }
 
   return (
-    <div className="multi-select" ref={rootRef}>
+    <div className="multi-select under-title" ref={rootRef}>
       <span className="multi-select-label">Sites &amp; comps</span>
-      <button
-        type="button"
-        className="multi-select-trigger"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span>{summary}</span>
-        <span className="multi-select-caret" aria-hidden="true">
-          ▾
-        </span>
-      </button>
-      {open ? (
-        <div className="multi-select-menu sites-comps-menu" role="listbox">
-          <p className="menu-section">Sites</p>
-          <button
-            type="button"
-            className={focus === "site" && sitesAll ? "active" : ""}
-            onClick={() => {
-              setFocus("site")
-              setSelectedSiteIds([...ALL_SITE_IDS])
-            }}
-          >
-            All sites
-          </button>
+      <div className="multi-select-control">
+        <button
+          type="button"
+          className="multi-select-trigger"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span>{summary}</span>
+          <span className="multi-select-caret" aria-hidden="true">
+            ▾
+          </span>
+        </button>
+        {open ? (
+          <div className="multi-select-menu sites-comps-menu" role="listbox">
+            <p className="menu-section">Sites</p>
+            <button
+              type="button"
+              className={focus === "site" && sitesAll ? "active" : ""}
+              onClick={() => {
+                setFocus("site")
+                setSelectedSiteIds([...ALL_SITE_IDS])
+              }}
+            >
+              All sites
+            </button>
           {tradeArea.sites.map((s) => (
             <label
               key={s.id}
@@ -913,8 +916,10 @@ function SitesCompsSelect({
               {i + 1}. {l.tenant}
             </label>
           ))}
-        </div>
-      ) : null}
+          </div>
+        ) : null}
+      </div>
+      {hint ? <p className="multi-select-hint">{hint}</p> : null}
     </div>
   )
 }
@@ -1519,7 +1524,6 @@ function SourcesSection() {
   return (
     <section className="view-section sources-section" id="sources">
       <header className="view-header">
-        <p className="eyebrow">View III</p>
         <h2>Sources &amp; footnotes</h2>
         <p>
           Endnotes from the {tradeArea.updated} Manhattan Trade Area Analysis
@@ -1636,7 +1640,7 @@ export default function App() {
   })
   const [hoodLayers, setHoodLayers] = useState<Record<LayerKey, boolean>>({
     income: true,
-    labels: false,
+    labels: true,
     radii: false,
     sites: true,
     leases: false,
@@ -1718,15 +1722,8 @@ export default function App() {
         <HomeHero onExplore={() => scrollToId("sites-corridors")} />
 
         <section className="view-section" id="sites-corridors">
-          <header className="view-header with-filter">
-            <div className="view-header-copy">
-              <p className="eyebrow">View I</p>
-              <h2>Sites &amp; corridors</h2>
-              <p>
-                Starts on 835 Washington St. Use the selector for sites or lease
-                comps, or click markers on the map.
-              </p>
-            </div>
+          <header className="view-header sites-header-stack">
+            <h2>Sites &amp; corridors</h2>
             <SitesCompsSelect
               focus={sitesFocus}
               setFocus={setSitesFocus}
@@ -1734,6 +1731,7 @@ export default function App() {
               setSelectedSiteIds={setSelectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
               setSelectedLeaseIndexes={setSelectedLeaseIndexes}
+              hint="Select a site or lease comp here, or click its marker on the map."
             />
           </header>
 
@@ -1806,7 +1804,6 @@ export default function App() {
         <section className="view-section" id="neighborhoods">
           <header className="view-header with-filter">
             <div className="view-header-copy">
-              <p className="eyebrow">View II</p>
               <h2>Neighborhoods</h2>
               <p>
                 All 26 neighborhoods by default as a comparison table. Click the
