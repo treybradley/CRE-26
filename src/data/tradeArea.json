@@ -1,5 +1,5 @@
 {
-  "updated": "November 15, 2026",
+  "updated": "November 16, 2026",
   "sites": [
     {
       "id": "university",
@@ -82,7 +82,7 @@
       "hhOver200k": "46.6%",
       "population": "4,875",
       "employees": "51,664",
-      "askingRent": "N/A",
+      "askingRent": "$93‡",
       "medianHhIncome": "$183K",
       "averageHhIncome": "$321K",
       "bachelorsOrHigher": "79.9%",
@@ -123,7 +123,7 @@
       "hhOver200k": "31.6%",
       "population": "24,439",
       "employees": "39,710",
-      "askingRent": "N/A",
+      "askingRent": "$101",
       "medianHhIncome": "$118K",
       "averageHhIncome": "$214K",
       "bachelorsOrHigher": "72.3%",
@@ -208,7 +208,7 @@
       "hhOver200k": "43.3%",
       "population": "12,261",
       "employees": "72,675",
-      "askingRent": "N/A",
+      "askingRent": "$115",
       "medianHhIncome": "$168K",
       "averageHhIncome": "$304K",
       "bachelorsOrHigher": "80.5%",
@@ -330,7 +330,7 @@
       "hhOver200k": "64.5%",
       "population": "13,392",
       "employees": "54,838",
-      "askingRent": "N/A",
+      "askingRent": "$91",
       "medianHhIncome": "$250K+",
       "averageHhIncome": "$512K",
       "bachelorsOrHigher": "90.5%",
@@ -371,7 +371,7 @@
       "hhOver200k": "49.0%",
       "population": "2,910",
       "employees": "28,029",
-      "askingRent": "N/A",
+      "askingRent": "$91",
       "medianHhIncome": "$189K",
       "averageHhIncome": "$355K",
       "bachelorsOrHigher": "69.5%",
@@ -454,7 +454,7 @@
       "hhOver200k": "44.2%",
       "population": "18,624",
       "employees": "32,804",
-      "askingRent": "N/A",
+      "askingRent": "$73‡",
       "medianHhIncome": "$168K",
       "averageHhIncome": "$283K",
       "bachelorsOrHigher": "91.7%",
@@ -538,7 +538,7 @@
       "hhOver200k": "29.3%",
       "population": "6,390",
       "employees": "20,234",
-      "askingRent": "N/A",
+      "askingRent": "$148",
       "medianHhIncome": "$148K",
       "averageHhIncome": "$233K",
       "bachelorsOrHigher": "89.3%",
@@ -701,7 +701,7 @@
       "hhOver200k": "24.0%",
       "population": "9,952",
       "employees": "7,863",
-      "askingRent": "N/A",
+      "askingRent": "$96‡",
       "medianHhIncome": "$108K",
       "averageHhIncome": "$144K",
       "bachelorsOrHigher": "80.3%",
@@ -987,7 +987,7 @@
       "hhOver200k": "41.8%",
       "population": "26,735",
       "employees": "40,999",
-      "askingRent": "N/A",
+      "askingRent": "$52†‡",
       "medianHhIncome": "$154K",
       "averageHhIncome": "$278K",
       "bachelorsOrHigher": "83.5%",
@@ -1205,7 +1205,7 @@
     },
     {
       "no": "8",
-      "source": "Source to be added once the rents are pulled (Cushman & Wakefield MarketBeat and/or JLL)."
+      "source": "Asking rents: Sotheby's International Realty retail space tracker, November 2026, compiled from asking rents quoted by landlords' listing agents for available ground-floor and lower-level retail spaces. Blended figures divide total annual asking rent by total square feet quoted. Neighborhoods are as defined in the tracker."
     },
     {
       "no": "9",
@@ -1223,5 +1223,27 @@
     "census": "U.S. Census Bureau, American Community Survey 5-year estimates 2020–2024; U.S. Census Bureau cartographic boundary files (simplified for display only).",
     "footTraffic": "Foot traffic is modeled (MIT City Form Lab, NYC Walks / Sevtsuk et al.)."
   },
-  "gramercyNote": "Gramercy Park is one census tract with 135 sidewalk segments, so its figures may not be comparable with other neighborhoods."
+  "gramercyNote": "Gramercy Park is one census tract with 135 sidewalk segments, so its figures may not be comparable with other neighborhoods.",
+  "chart3Footnotes": [
+    {
+      "marker": "Blended",
+      "text": "Blended asking rent: total annual asking rent divided by total square feet quoted (ground floor plus lower and other levels). Asking rents were quoted by landlords' listing agents in November 2026."
+    },
+    {
+      "marker": "†",
+      "text": "NNN (triple net): the tenant pays property taxes, insurance and common-area maintenance in addition to the rent shown, so this figure is not directly comparable with the other asking rents. Quoted on all floors (7,500 SF)."
+    },
+    {
+      "marker": "‡",
+      "text": "Based on a single asking-rent quote. It is not an average."
+    },
+    {
+      "marker": "§",
+      "text": "Figures reflect available spaces, mostly on side streets and secondary frontage, not prime corridor frontage. They run below the prime-corridor averages reported in brokerage research and are not directly comparable."
+    },
+    {
+      "marker": "TriBeCa",
+      "text": "TriBeCa asking rent combines all TriBeCa listings and is shown in both TriBeCa rows."
+    }
+  ]
 }

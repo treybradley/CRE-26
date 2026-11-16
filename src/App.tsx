@@ -27,13 +27,15 @@ import {
   neighborhoodByName,
   parseCount,
   tradeArea,
+  type Lease,
   type Neighborhood,
   type Site,
 } from "./data/tradeArea"
 
+const SITE_TITLE = "Manhattan F&B Market Study"
 const GEOJSON_URL = `${import.meta.env.BASE_URL}data/Tracts_26_Neighborhoods.geojson`
 const MILES_TO_METERS = 1609.344
-const ANALYSIS_PDF = `${import.meta.env.BASE_URL}Manhattan_Trade_Area_Analysis_11-15-2026.pdf`
+const ANALYSIS_PDF = `${import.meta.env.BASE_URL}Manhattan_Trade_Area_Analysis_11-16-2026.pdf`
 
 /** Quiet OSM-based tiles: street grid + names, no landuse orange/ferry dashes. */
 const CARTO_KEY = import.meta.env.VITE_CARTO_API_KEY ?? ""
@@ -44,45 +46,96 @@ const BASEMAP_ATTR =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
 
 type MapMode = "sites" | "neighborhoods"
-type LayerKey = "income" | "labels" | "radii" | "sites" | "leases"
+type LayerKey =
+  | "income"
+  | "labels"
+  | "radius025"
+  | "radius05"
+  | "sites"
+  | "leases"
 type LatLngTuple = [number, number]
+type SitesFocus = "site" | "comparable"
+type HoodTab = "3" | "4" | "5"
+type ChartId = "1" | "3" | "4" | "5" | "6"
 
-const TOC = [
+/** Exact chart names (Chart 2 is hidden for now). */
+const CHART_NAMES: Record<ChartId, string> = {
+  "1": "Trade Area Demand Drivers",
+  "3": "Population, Employees & Asking Rents",
+  "4": "Residential & Workforce Detail",
+  "5": "Foot Traffic by Time of Day",
+  "6": "Food & Beverage Committed Lease Comparables",
+}
+const chartLabel = (id: ChartId) => `Chart ${id}: ${CHART_NAMES[id]}`
+
+type TocItem = {
+  id: string
+  number: string
+  label: string
+  title: string
+  children: { id: string; label: string }[]
+}
+
+const TOC: TocItem[] = [
   {
     id: "home",
     number: "0",
     label: "Home",
-    children: [] as { id: string; label: string }[],
+    title: "0 Home",
+    children: [],
   },
   {
     id: "sites-corridors",
     number: "I",
-    label: "Sites & corridors",
+    label: "Sites & Corridors",
+    title: "I Sites & Corridors (Charts 1, 2 and 6)",
     children: [
-      { id: "chart-1", label: "Demand drivers" },
-      { id: "chart-2", label: "Rental ranges" },
-      { id: "chart-6", label: "Lease comps" },
+      { id: "chart-1", label: chartLabel("1") },
+      { id: "chart-6", label: chartLabel("6") },
     ],
   },
   {
     id: "neighborhoods",
     number: "II",
     label: "Neighborhoods",
+    title: "II Neighborhoods (Charts 3, 4 and 5)",
     children: [
-      { id: "chart-3", label: "Pop. & employees" },
-      { id: "chart-4", label: "Workforce" },
-      { id: "chart-5", label: "Foot traffic" },
+      { id: "chart-3", label: chartLabel("3") },
+      { id: "chart-4", label: chartLabel("4") },
+      { id: "chart-5", label: chartLabel("5") },
     ],
   },
   {
     id: "sources",
     number: "III",
-    label: "Sources & footnotes",
-    children: [] as { id: string; label: string }[],
+    label: "Sources & Footnotes",
+    title: "III Sources & Footnotes",
+    children: [],
   },
-] as const
+]
 
-const URL_RE = /(https?:\/\/[^\s)]+)|(doi\.org\/[^\s)]+)/gi
+/** Pixel nudges so neighboring neighborhood labels do not overlap. */
+const LABEL_OFFSETS: Record<string, [number, number]> = {
+  "Meatpacking District": [-18, -10],
+  "Greenwich Village": [0, -12],
+  NoHo: [10, 10],
+  "TriBeCa (Waterfront Core)": [-34, -12],
+  "TriBeCa (Broadway/Civic)": [34, 12],
+  "Hudson Square": [-22, 2],
+  SoHo: [10, -2],
+}
+
+/** URLs and bare census hosts are linked with a short hostname as link text. */
+const URL_RE =
+  /(https?:\/\/\S+)|(\b(?:(?:api|data|lehd\.ces)\.census\.gov|doi\.org)(?:\/[^\s,;]*)?)/gi
+
+function shortHost(href: string) {
+  try {
+    return new URL(href).hostname.replace(/^www\./, "")
+  } catch {
+    return href
+  }
+}
 
 function linkifySource(text: string): ReactNode[] {
   const parts: ReactNode[] = []
@@ -91,18 +144,25 @@ function linkifySource(text: string): ReactNode[] {
   matches.forEach((match, i) => {
     const start = match.index ?? 0
     if (start > last) parts.push(text.slice(last, start))
-    let href = match[0]
-    if (href.startsWith("doi.org/")) href = `https://${href}`
-    const clean = href.replace(/[.,;:]+$/, "")
+    const raw = match[0].replace(/[.,;:]+$/, "")
+    const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
     parts.push(
-      <a key={`${i}-${clean}`} href={clean} target="_blank" rel="noreferrer">
-        {clean}
+      <a key={`${i}-${raw}`} href={href} target="_blank" rel="noreferrer">
+        {shortHost(href)}
       </a>,
     )
-    last = start + match[0].length
+    last = start + raw.length
   })
   if (last < text.length) parts.push(text.slice(last))
   return parts.length ? parts : [text]
+}
+
+/** Reference [3] lists five separate sources; show each on its own line. */
+function sourceLines(no: string, source: string): string[] {
+  if (no !== "3") return [source]
+  return source.split(
+    /(?<=\.)\s+(?=New York University,|The New School, Fall|The Cooper Union,|Cardozo School of Law,)/,
+  )
 }
 
 function ringCentroid(ring: number[][]): LatLngTuple {
@@ -155,47 +215,52 @@ function markerHtml(site: Site) {
   return `<span class="site-marker circle" style="background:${color}"></span>`
 }
 
-function sitePopupHtml(site: Site) {
-  return `
-    <div class="map-popup">
-      <strong>${site.address}</strong>
-      <span class="muted">${site.corridor}</span>
-      <hr />
-      <div><b>Population 5-min</b> ${site.population5min}</div>
-      <div><b>Population 10-min</b> ${site.population10min}</div>
-      <div><b>Employees 0.25-mile</b> ${site.employees025}</div>
-      <div><b>Employees 0.5-mile</b> ${site.employees05}</div>
-      <div><b>Student enrollment (0.5 mile)</b> ${site.students05}</div>
-      <div><b>Hotel rooms 5-min</b> ${site.hotels5min}</div>
-      <div><b>Hotel rooms 10-min</b> ${site.hotels10min}</div>
-      <p class="footnote">Walk-time figures are from RadiusMapper reports (not drawn). Employee counts use the 0.25- and 0.5-mile circles shown.</p>
-    </div>
-  `
-}
-
 function scrollToId(id: string) {
   const el = document.getElementById(id)
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
 }
 
+const ALL_SITE_IDS = tradeArea.sites.map((s) => s.id)
+const ALL_HOOD_NAMES = tradeArea.neighborhoods.map((n) => n.name)
+const ALL_LEASE_INDEXES = tradeArea.leases.map((_, i) => i)
+const DEFAULT_SITE_ID =
+  tradeArea.sites.find((s) => s.id === "washington")?.id ?? ALL_SITE_IDS[0]
+
+/** Offset well away from site markers so comps stay clickable. */
+const LEASE_PINS: { leaseIndex: number; position: LatLngTuple }[] = [
+  { leaseIndex: 0, position: [40.7264, -73.9914] },
+  { leaseIndex: 1, position: [40.7292, -73.9908] },
+  { leaseIndex: 2, position: [40.7331, -73.9898] },
+]
+
+function incomeBandLabel(n: Neighborhood | undefined): string | null {
+  if (!n?.medianIncomeSort) return null
+  const color = incomeFill(n)
+  return INCOME_STOPS.find((s) => s.color === color)?.label ?? null
+}
+
+const fmtNumber = (v: unknown) => Number(v).toLocaleString("en-US")
+
 function TradeMap({
   mode,
   layers,
+  focus,
   selectedNames,
+  selectedIncomeBand,
   selectedSiteIds,
   selectedLeaseIndexes,
   onSelect,
-  onHover,
   onSelectSite,
   onSelectLease,
 }: {
   mode: MapMode
   layers: Record<LayerKey, boolean>
+  focus?: SitesFocus
   selectedNames: string[]
+  selectedIncomeBand?: string | null
   selectedSiteIds?: string[]
   selectedLeaseIndexes?: number[]
   onSelect: (n: Neighborhood) => void
-  onHover: (n: Neighborhood | null) => void
   onSelectSite?: (site: Site) => void
   onSelectLease?: (index: number) => void
 }) {
@@ -206,10 +271,44 @@ function TradeMap({
   const radiiLayerRef = useRef<L.LayerGroup | null>(null)
   const sitesLayerRef = useRef<L.LayerGroup | null>(null)
   const leasesLayerRef = useRef<L.LayerGroup | null>(null)
+  const firstFocusRef = useRef(true)
   const selectedRef = useRef(selectedNames)
+  const layersRef = useRef(layers)
+  const bandRef = useRef(selectedIncomeBand ?? null)
   const modeRef = useRef(mode)
   selectedRef.current = selectedNames
+  layersRef.current = layers
+  bandRef.current = selectedIncomeBand ?? null
   modeRef.current = mode
+
+  const styleFor: L.StyleFunction = (feature) => {
+    const name = feature?.properties?.neighborhood as string
+    const n = neighborhoodByName[name]
+    const hoodMode = modeRef.current === "neighborhoods"
+    const names = selectedRef.current
+    const showIncome = hoodMode && layersRef.current.income
+    const highlight =
+      hoodMode && names.length > 0 && names.length < tradeArea.neighborhoods.length
+    const selected = names.includes(name)
+    const dimOthers = highlight && !selected
+    const band = showIncome ? bandRef.current : null
+    const bandMatch = !band || incomeBandLabel(n) === band
+    let fillOpacity = dimOthers
+      ? 0.12
+      : showIncome
+        ? 0.7
+        : hoodMode
+          ? 0.12
+          : 0.18
+    if (band) fillOpacity = bandMatch ? 0.88 : 0.08
+    return {
+      color: highlight && selected ? NAVY : hoodMode ? "#ffffff" : "#9bb6cb",
+      weight: highlight && selected ? 2.5 : hoodMode ? 0.6 : 1,
+      opacity: 1,
+      fillColor: showIncome ? incomeFill(n) : "#d6e2ec",
+      fillOpacity,
+    }
+  }
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -226,19 +325,7 @@ function TradeMap({
     }).addTo(map)
 
     const tracts = L.geoJSON(undefined, {
-      style: (feature) => {
-        const name = feature?.properties?.neighborhood as string
-        const n = neighborhoodByName[name]
-        const selected = selectedRef.current.includes(name)
-        const showIncome = modeRef.current === "neighborhoods"
-        return {
-          color: selected ? NAVY : showIncome ? "#ffffff" : "#9bb6cb",
-          weight: selected ? 2.5 : showIncome ? 0.6 : 1,
-          opacity: 1,
-          fillColor: showIncome ? incomeFill(n) : "#d6e2ec",
-          fillOpacity: showIncome ? 0.7 : 0.22,
-        }
-      },
+      style: styleFor,
       onEachFeature: (feature, layer) => {
         const name = feature.properties?.neighborhood as string
         const n = neighborhoodByName[name]
@@ -249,11 +336,9 @@ function TradeMap({
             const target = e.target as L.Path
             target.setStyle({ weight: 2, color: NAVY })
             target.bringToFront()
-            onHover(n)
           },
           mouseout: (e) => {
             tracts.resetStyle(e.target)
-            onHover(null)
           },
           click: () => {
             if (modeRef.current === "neighborhoods") onSelect(n)
@@ -267,13 +352,7 @@ function TradeMap({
       .then((r) => r.json())
       .then((geo: GeoJSON.FeatureCollection) => {
         tracts.addData(geo)
-        if (mode === "sites") {
-          const siteBounds = L.latLngBounds(
-            tradeArea.sites.map((s) => s.position),
-          )
-          for (const pin of LEASE_PINS) siteBounds.extend(pin.position)
-          map.fitBounds(siteBounds, { padding: [56, 56], maxZoom: 15 })
-        } else {
+        if (modeRef.current === "neighborhoods") {
           map.fitBounds(tracts.getBounds(), {
             padding: [40, 40],
             maxZoom: 15,
@@ -295,11 +374,12 @@ function TradeMap({
           for (const [name, pts] of Object.entries(buckets)) {
             const lat = pts.reduce((s, p) => s + p[0], 0) / pts.length
             const lng = pts.reduce((s, p) => s + p[1], 0) / pts.length
+            const [dx, dy] = LABEL_OFFSETS[name] ?? [0, 0]
             L.marker([lat, lng], {
               interactive: false,
               icon: L.divIcon({
                 className: "hood-label",
-                html: `<span>${name}</span>`,
+                html: `<span style="transform:translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))">${name}</span>`,
                 iconSize: [0, 0],
               }),
             }).addTo(labels)
@@ -321,32 +401,9 @@ function TradeMap({
   }, [])
 
   useEffect(() => {
-    const tracts = tractsLayerRef.current
-    if (!tracts) return
-    const showIncome = mode === "neighborhoods" && layers.income
-    const multi =
-      mode === "neighborhoods" &&
-      selectedNames.length > 0 &&
-      selectedNames.length < tradeArea.neighborhoods.length
-    tracts.setStyle((feature) => {
-      const name = feature?.properties?.neighborhood as string
-      const n = neighborhoodByName[name]
-      const selected = selectedNames.includes(name)
-      const dimOthers = multi && !selected
-      return {
-        color: selected && multi ? NAVY : mode === "neighborhoods" ? "#ffffff" : "#9bb6cb",
-        weight: selected && multi ? 2.5 : mode === "neighborhoods" ? 0.6 : 1,
-        fillColor: showIncome ? incomeFill(n) : "#d6e2ec",
-        fillOpacity: dimOthers
-          ? 0.12
-          : showIncome
-            ? 0.7
-            : mode === "sites"
-              ? 0.18
-              : 0.12,
-      }
-    })
-  }, [layers.income, selectedNames, mode])
+    tractsLayerRef.current?.setStyle(styleFor)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layers.income, selectedNames, selectedIncomeBand, mode])
 
   useEffect(() => {
     const labels = labelsLayerRef.current
@@ -364,9 +421,14 @@ function TradeMap({
     const group = radiiLayerRef.current
     if (!group) return
     group.clearLayers()
-    if (mode !== "sites" || !layers.radii) return
+    if (mode !== "sites") return
+    const radii: [number, boolean][] = [
+      [0.25, layers.radius025],
+      [0.5, layers.radius05],
+    ]
     for (const site of tradeArea.sites) {
-      for (const miles of [0.25, 0.5]) {
+      for (const [miles, on] of radii) {
+        if (!on) continue
         L.circle(site.position, {
           radius: miles * MILES_TO_METERS,
           color: site.marker.color,
@@ -377,16 +439,19 @@ function TradeMap({
         }).addTo(group)
       }
     }
-  }, [layers.radii, mode])
+  }, [layers.radius025, layers.radius05, mode])
 
   useEffect(() => {
     const group = sitesLayerRef.current
     if (!group) return
     group.clearLayers()
-    if (!layers.sites) return
+    // Site markers belong to the Sites & Corridors map only.
+    if (mode !== "sites" || !layers.sites) return
     const siteIds = selectedSiteIds ?? []
     const highlightSites =
-      siteIds.length > 0 && siteIds.length < tradeArea.sites.length
+      focus !== "comparable" &&
+      siteIds.length > 0 &&
+      siteIds.length < tradeArea.sites.length
     for (const site of tradeArea.sites) {
       const selected = highlightSites && siteIds.includes(site.id)
       const icon = L.divIcon({
@@ -399,14 +464,10 @@ function TradeMap({
         icon,
         zIndexOffset: 600,
       })
-      if (mode === "sites" && onSelectSite) {
-        marker.on("click", () => onSelectSite(site))
-      } else {
-        marker.bindPopup(sitePopupHtml(site), { maxWidth: 320 })
-      }
+      if (onSelectSite) marker.on("click", () => onSelectSite(site))
       marker.addTo(group)
     }
-  }, [layers.sites, mode, selectedSiteIds, onSelectSite])
+  }, [layers.sites, mode, focus, selectedSiteIds, onSelectSite])
 
   useEffect(() => {
     const group = leasesLayerRef.current
@@ -415,12 +476,13 @@ function TradeMap({
     if (mode !== "sites" || !layers.leases) return
     const leaseIdx = selectedLeaseIndexes ?? []
     const highlightLeases =
-      leaseIdx.length > 0 && leaseIdx.length < tradeArea.leases.length
+      focus === "comparable" &&
+      leaseIdx.length > 0 &&
+      leaseIdx.length < tradeArea.leases.length
     for (const pin of LEASE_PINS) {
       const lease = tradeArea.leases[pin.leaseIndex]
       if (!lease) continue
-      const selected =
-        highlightLeases && leaseIdx.includes(pin.leaseIndex)
+      const selected = highlightLeases && leaseIdx.includes(pin.leaseIndex)
       const icon = L.divIcon({
         className: `lease-icon${selected ? " is-selected" : ""}`,
         html: `<span class="lease-pin">${pin.leaseIndex + 1}</span>`,
@@ -433,7 +495,47 @@ function TradeMap({
       }
       marker.addTo(group)
     }
-  }, [layers.leases, mode, selectedLeaseIndexes, onSelectLease])
+  }, [layers.leases, mode, focus, selectedLeaseIndexes, onSelectLease])
+
+  // Zoom in close on a single site / comp; otherwise frame everything selected.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || mode !== "sites") return
+    const animate = !firstFocusRef.current
+    firstFocusRef.current = false
+
+    let single: LatLngTuple | null = null
+    let pts: LatLngTuple[] = []
+    if (focus === "comparable") {
+      const idx = selectedLeaseIndexes ?? []
+      const pins = LEASE_PINS.filter((p) => idx.includes(p.leaseIndex))
+      if (pins.length === 1) single = pins[0]!.position
+      else if (pins.length > 1 && pins.length < LEASE_PINS.length) {
+        pts = pins.map((p) => p.position)
+      }
+    } else {
+      const ids = selectedSiteIds ?? []
+      const sel = tradeArea.sites.filter((s) => ids.includes(s.id))
+      if (sel.length === 1) single = sel[0]!.position
+      else if (sel.length > 1 && sel.length < tradeArea.sites.length) {
+        pts = sel.map((s) => s.position)
+      }
+    }
+
+    if (single) {
+      map.setView(single, 16, { animate })
+      return
+    }
+    const bounds = L.latLngBounds(
+      pts.length
+        ? pts
+        : [
+            ...tradeArea.sites.map((s) => s.position as LatLngTuple),
+            ...LEASE_PINS.map((p) => p.position),
+          ],
+    )
+    map.fitBounds(bounds, { padding: [56, 56], maxZoom: 15, animate })
+  }, [mode, focus, selectedSiteIds, selectedLeaseIndexes])
 
   return <div ref={containerRef} className="map-canvas" />
 }
@@ -500,6 +602,8 @@ function TableOfContents({
               <a
                 className={active === section.id ? "active" : ""}
                 href={`#${section.id}`}
+                title={section.title}
+                aria-label={section.title}
                 onClick={(e) => {
                   e.preventDefault()
                   navigate(section.id)
@@ -514,6 +618,7 @@ function TableOfContents({
                     <a
                       key={child.id}
                       href={`#${child.id}`}
+                      title={child.label}
                       onClick={(e) => {
                         e.preventDefault()
                         navigate(child.id)
@@ -531,7 +636,8 @@ function TableOfContents({
               href={ANALYSIS_PDF}
               target="_blank"
               rel="noreferrer"
-              aria-label="Open analysis PDF"
+              aria-label="Open Analysis PDF"
+              title="Analysis PDF"
             >
               <b>
                 <FileText size={14} />
@@ -545,23 +651,6 @@ function TableOfContents({
   )
 }
 
-type SitesFocus = "site" | "comparable"
-type SiteChartTab = "1" | "2"
-type HoodTab = "3" | "4" | "5"
-
-const ALL_SITE_IDS = tradeArea.sites.map((s) => s.id)
-const ALL_HOOD_NAMES = tradeArea.neighborhoods.map((n) => n.name)
-const ALL_LEASE_INDEXES = tradeArea.leases.map((_, i) => i)
-const DEFAULT_SITE_ID =
-  tradeArea.sites.find((s) => s.id === "washington")?.id ?? ALL_SITE_IDS[0]
-
-/** Offset from site markers so comps stay clickable (Wake and Late ≈ Lafayette). */
-const LEASE_PINS: { leaseIndex: number; position: LatLngTuple }[] = [
-  { leaseIndex: 0, position: [40.7281, -73.9929] },
-  { leaseIndex: 1, position: [40.7296, -73.9932] },
-  { leaseIndex: 2, position: [40.7322, -73.9915] },
-]
-
 function sameSet(a: string[], b: string[]) {
   return a.length === b.length && a.every((id) => b.includes(id))
 }
@@ -572,7 +661,7 @@ function selectionLabel(
   singular: string,
   allWord = "All",
 ) {
-  if (count === 0) return "None selected"
+  if (count === 0) return "None Selected"
   if (count === total) return `${allWord} (${total})`
   if (count === 1) return `1 ${singular}`
   return `${count} of ${total}`
@@ -591,17 +680,14 @@ function useMenuDismiss(open: boolean, onClose: () => void) {
   return rootRef
 }
 
-const CHART_NOTES = {
+const CHART_NOTES: Record<ChartId, readonly string[]> = {
   "1": [
     "Population and hotel rooms are for 5- and 10-minute walks (RadiusMapper). Walk-time areas are not drawn on the map.",
-    "Employee counts use the 0.25- and 0.5-mile straight-line circles shown on the map.",
-  ],
-  "2": [
-    "Ground-floor retail rental ranges are on hold until published sources are confirmed.",
+    "Employee counts and student enrollment use the 0.25- and 0.5-mile straight-line radii shown on the map.",
   ],
   "3": [
     tradeArea.clickSourceLine,
-    "Asking rents are N/A until received.",
+    "Asking rents are blended figures quoted by landlords' listing agents in November 2026; symbols are explained in the footnotes under the table.",
     "Full comparison tables are in the analysis PDF.",
   ],
   "4": [
@@ -618,7 +704,7 @@ const CHART_NOTES = {
     "Committed F&B lease comparables from the analysis package (same deals as the PDF).",
     "Asking rent and annual base rent are as reported in the source comps.",
   ],
-} as const
+}
 
 function NoteTip({
   notes,
@@ -631,7 +717,11 @@ function NoteTip({
   const rootRef = useMenuDismiss(open, () => setOpen(false))
 
   return (
-    <span className="note-tip" ref={rootRef}>
+    <span
+      className="note-tip"
+      ref={rootRef}
+      onMouseLeave={() => setOpen(false)}
+    >
       <button
         type="button"
         className="note-tip-btn"
@@ -649,7 +739,7 @@ function NoteTip({
             ))}
           </ul>
           <a href="#sources" onClick={() => setOpen(false)}>
-            Sources &amp; footnotes
+            Sources &amp; Footnotes
           </a>
         </div>
       ) : null}
@@ -658,20 +748,67 @@ function NoteTip({
 }
 
 function ChartHeading({
-  title,
-  notes,
+  chart,
   extraNotes,
+  dek,
 }: {
-  title: string
-  notes: readonly string[]
+  chart: ChartId
   extraNotes?: readonly string[]
+  dek?: string
 }) {
-  const allNotes = extraNotes?.length ? [...notes, ...extraNotes] : notes
+  const notes = extraNotes?.length
+    ? [...CHART_NOTES[chart], ...extraNotes]
+    : CHART_NOTES[chart]
+  const title = chartLabel(chart)
   return (
-    <div className="chart-heading">
-      <h4>{title}</h4>
-      <NoteTip notes={allNotes} label={title} />
+    <div className="chart-heading-block">
+      <div className="chart-heading">
+        <h4>{title}</h4>
+        <NoteTip notes={notes} label={title} />
+      </div>
+      {dek ? <p className="chart-dek">{dek}</p> : null}
     </div>
+  )
+}
+
+function DataTable({ children }: { children: ReactNode }) {
+  return (
+    <div className="data-table-wrap">
+      <table className="data-table">{children}</table>
+    </div>
+  )
+}
+
+function HoodNameCell({
+  hood,
+  onPick,
+}: {
+  hood: Neighborhood
+  onPick: (name: string) => void
+}) {
+  return (
+    <td className="sticky-col">
+      <button
+        type="button"
+        className="table-link"
+        onClick={() => onPick(hood.name)}
+      >
+        {hood.name}
+      </button>
+      <span className="table-sub">{hood.group}</span>
+    </td>
+  )
+}
+
+function RentCell({ value }: { value: string }) {
+  const m = value.match(/^(.*?)([†‡§*]+)?$/)
+  const base = m?.[1] ?? value
+  const mark = m?.[2]
+  return (
+    <>
+      {base}
+      {mark ? <sup className="rent-mark">{mark}</sup> : null}
+    </>
   )
 }
 
@@ -698,7 +835,7 @@ function MultiSelect({
   const summary = isAll
     ? allLabel
     : selected.length === 1
-      ? (options.find((o) => o.id === selected[0])?.label ?? "1 selected")
+      ? (options.find((o) => o.id === selected[0])?.label ?? "1 Selected")
       : selectionLabel(selected.length, allIds.length, singular)
 
   const toggle = (id: string) => {
@@ -707,8 +844,7 @@ function MultiSelect({
       return
     }
     if (selected.includes(id)) {
-      const next = selected.filter((x) => x !== id)
-      onChange(next.length ? next : [...allIds])
+      onChange(selected.filter((x) => x !== id))
     } else {
       const next = [...selected, id]
       onChange(sameSet(next, allIds) ? [...allIds] : next)
@@ -731,13 +867,22 @@ function MultiSelect({
       </button>
       {open ? (
         <div className="multi-select-menu" role="listbox" aria-multiselectable>
-          <button
-            type="button"
-            className={isAll ? "active" : ""}
-            onClick={() => onChange([...allIds])}
-          >
-            {allLabel}
-          </button>
+          <div className="menu-actions">
+            <button
+              type="button"
+              className={isAll ? "active" : ""}
+              onClick={() => onChange([...allIds])}
+            >
+              {allLabel}
+            </button>
+            <button
+              type="button"
+              className={selected.length === 0 ? "active" : ""}
+              onClick={() => onChange([])}
+            >
+              Clear All
+            </button>
+          </div>
           {options.map((opt) => (
             <label
               key={opt.id}
@@ -782,23 +927,23 @@ function SitesCompsSelect({
   const summary =
     focus === "site"
       ? sitesAll
-        ? "All sites"
+        ? "All Target Corridors"
         : selectedSiteIds.length === 1
           ? (tradeArea.sites.find((s) => s.id === selectedSiteIds[0])
-              ?.address ?? "1 site")
+              ?.address ?? "1 Target Corridor")
           : selectionLabel(
               selectedSiteIds.length,
               tradeArea.sites.length,
-              "site",
+              "Target Corridor",
             )
       : compsAll
-        ? "All comps"
+        ? "All Lease Comps"
         : selectedLeaseIndexes.length === 1
-          ? `${selectedLeaseIndexes[0] + 1}. ${tradeArea.leases[selectedLeaseIndexes[0]]?.tenant}`
+          ? `${selectedLeaseIndexes[0]! + 1}. ${tradeArea.leases[selectedLeaseIndexes[0]!]?.tenant}`
           : selectionLabel(
               selectedLeaseIndexes.length,
               tradeArea.leases.length,
-              "comp",
+              "Lease Comp",
             )
 
   const toggleSite = (id: string) => {
@@ -835,7 +980,7 @@ function SitesCompsSelect({
 
   return (
     <div className="multi-select" ref={rootRef}>
-      <span className="multi-select-label">Sites &amp; comps</span>
+      <span className="multi-select-label">Target Corridors &amp; Lease Comps</span>
       <div className="multi-select-control">
         <button
           type="button"
@@ -850,7 +995,7 @@ function SitesCompsSelect({
         </button>
         {open ? (
           <div className="multi-select-menu sites-comps-menu" role="listbox">
-            <p className="menu-section">Sites</p>
+            <p className="menu-section">Target Corridors</p>
             <button
               type="button"
               className={focus === "site" && sitesAll ? "active" : ""}
@@ -859,7 +1004,7 @@ function SitesCompsSelect({
                 setSelectedSiteIds([...ALL_SITE_IDS])
               }}
             >
-              All sites
+              All Target Corridors
             </button>
             {tradeArea.sites.map((s) => (
               <label
@@ -883,7 +1028,7 @@ function SitesCompsSelect({
                 {s.address}
               </label>
             ))}
-            <p className="menu-section">Lease comps</p>
+            <p className="menu-section">Lease Comps</p>
             <button
               type="button"
               className={focus === "comparable" && compsAll ? "active" : ""}
@@ -892,7 +1037,7 @@ function SitesCompsSelect({
                 setSelectedLeaseIndexes([...ALL_LEASE_INDEXES])
               }}
             >
-              All comps
+              All Lease Comps
             </button>
             {tradeArea.leases.map((l, i) => (
               <label
@@ -925,37 +1070,50 @@ function SitesCompsSelect({
 
 function SitesDetailPanel({
   focus,
-  siteTab,
-  setSiteTab,
+  setFocus,
   selectedSiteIds,
   setSelectedSiteIds,
   selectedLeaseIndexes,
+  setSelectedLeaseIndexes,
+  onPickSite,
+  onPickLease,
 }: {
   focus: SitesFocus
-  siteTab: SiteChartTab
-  setSiteTab: (t: SiteChartTab) => void
+  setFocus: (f: SitesFocus) => void
   selectedSiteIds: string[]
   setSelectedSiteIds: (ids: string[]) => void
   selectedLeaseIndexes: number[]
+  setSelectedLeaseIndexes: (indexes: number[]) => void
+  onPickSite: (site: Site) => void
+  onPickLease: (index: number) => void
 }) {
   const sites = tradeArea.sites.filter((s) => selectedSiteIds.includes(s.id))
-  const leases = tradeArea.leases.filter((_, i) =>
-    selectedLeaseIndexes.includes(i),
-  )
-  const singleSite = sites.length === 1 ? sites[0] : null
-  const singleLease =
-    leases.length === 1
-      ? {
-          lease: leases[0],
-          index: tradeArea.leases.indexOf(leases[0]),
-        }
-      : null
+  const leaseRows: { lease: Lease; index: number }[] = tradeArea.leases
+    .map((lease, index) => ({ lease, index }))
+    .filter(({ index }) => selectedLeaseIndexes.includes(index))
+  const singleSite = sites.length === 1 ? sites[0]! : null
+  const singleLease = leaseRows.length === 1 ? leaseRows[0]! : null
+  const partialSites = sites.length < tradeArea.sites.length
+  const partialLeases = leaseRows.length < tradeArea.leases.length
+
   const chartData = singleSite
     ? [
-        { label: "Pop 5-min", value: parseCount(singleSite.population5min) },
-        { label: "Pop 10-min", value: parseCount(singleSite.population10min) },
-        { label: "Emp 0.25 mi", value: parseCount(singleSite.employees025) },
-        { label: "Emp 0.5 mi", value: parseCount(singleSite.employees05) },
+        {
+          label: "Population 5-Min",
+          value: parseCount(singleSite.population5min),
+        },
+        {
+          label: "Population 10-Min",
+          value: parseCount(singleSite.population10min),
+        },
+        {
+          label: "Employees 0.25-Mile",
+          value: parseCount(singleSite.employees025),
+        },
+        {
+          label: "Employees 0.5-Mile",
+          value: parseCount(singleSite.employees05),
+        },
       ]
     : []
 
@@ -963,310 +1121,265 @@ function SitesDetailPanel({
     <aside className="detail-panel" id="sites-detail">
       <div className="detail-panel-head">
         <p className="eyebrow">
-          {focus === "comparable" ? "Lease comps" : "Site corridors"}
-        </p>
-        <h3>
           {focus === "comparable"
-            ? singleLease
-              ? `${singleLease.index + 1}. ${singleLease.lease.tenant}`
-              : selectionLabel(
-                  selectedLeaseIndexes.length,
-                  tradeArea.leases.length,
-                  "comp",
-                  "All comps",
-                )
+            ? "Lease Comparables"
             : singleSite
-              ? singleSite.address
-              : selectionLabel(
-                  selectedSiteIds.length,
-                  tradeArea.sites.length,
-                  "site",
-                  "All sites",
-                )}
-        </h3>
+              ? "Target Corridor"
+              : "Target Corridors"}
+        </p>
+        <div className="detail-panel-title-row">
+          <h3>
+            {focus === "comparable"
+              ? singleLease
+                ? `${singleLease.index + 1}. ${singleLease.lease.tenant}`
+                : selectionLabel(
+                    leaseRows.length,
+                    tradeArea.leases.length,
+                    "Lease Comp",
+                    "All Lease Comps",
+                  )
+              : singleSite
+                ? singleSite.corridor
+                : selectionLabel(
+                    sites.length,
+                    tradeArea.sites.length,
+                    "Target Corridor",
+                    "All Target Corridors",
+                  )}
+          </h3>
+          {focus === "site" && partialSites ? (
+            <button
+              type="button"
+              className="clear-link"
+              onClick={() => setSelectedSiteIds([...ALL_SITE_IDS])}
+            >
+              Show All
+            </button>
+          ) : null}
+          {focus === "comparable" && partialLeases ? (
+            <button
+              type="button"
+              className="clear-link"
+              onClick={() => setSelectedLeaseIndexes([...ALL_LEASE_INDEXES])}
+            >
+              Show All
+            </button>
+          ) : null}
+        </div>
         {focus === "comparable" && singleLease ? (
           <p className="chart-dek">{singleLease.lease.address}</p>
         ) : null}
+        {focus === "site" && singleSite ? (
+          <p className="chart-dek">{singleSite.address}</p>
+        ) : null}
       </div>
 
-      {focus === "site" ? (
-        <div className="panel-tabs" role="tablist" aria-label="Site charts">
-          {(
-            [
-              ["1", "Demand drivers"],
-              ["2", "Rental ranges"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={siteTab === id}
-              className={siteTab === id ? "active" : ""}
-              onClick={() => setSiteTab(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <div className="panel-tabs" role="tablist" aria-label="Site Charts">
+        {(
+          [
+            ["1", "site"],
+            ["6", "comparable"],
+          ] as const
+        ).map(([id, tabFocus]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={focus === tabFocus}
+            className={focus === tabFocus ? "active" : ""}
+            onClick={() => setFocus(tabFocus)}
+          >
+            {chartLabel(id)}
+          </button>
+        ))}
+      </div>
 
       <div className="detail-panel-body">
-        {focus === "site" && siteTab === "1" ? (
+        {focus === "site" ? (
           <div id="chart-1">
-            <ChartHeading title="Demand drivers" notes={CHART_NOTES["1"]} />
+            <ChartHeading chart="1" />
             {singleSite ? (
-              <>
-                <dl className="stat-grid dense">
-                  <div>
-                    <dt>Population 5-min walk</dt>
-                    <dd>{singleSite.population5min}</dd>
-                  </div>
-                  <div>
-                    <dt>Population 10-min walk</dt>
-                    <dd>{singleSite.population10min}</dd>
-                  </div>
-                  <div>
-                    <dt>Employees 0.25-mile</dt>
-                    <dd>{singleSite.employees025}</dd>
-                  </div>
-                  <div>
-                    <dt>Employees 0.5-mile</dt>
-                    <dd>{singleSite.employees05}</dd>
-                  </div>
-                  <div>
-                    <dt>Student enrollment (0.5 mile)</dt>
-                    <dd>{singleSite.students05}</dd>
-                  </div>
-                  <div>
-                    <dt>Hotel rooms 5-min / 10-min</dt>
-                    <dd>
-                      {singleSite.hotels5min} / {singleSite.hotels10min}
-                    </dd>
-                  </div>
-                </dl>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#d5dee6" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill={BLUE} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </>
-            ) : (
-              <div className="data-table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Site</th>
-                      <th>Pop 5</th>
-                      <th>Pop 10</th>
-                      <th>Emp 0.25</th>
-                      <th>Emp 0.5</th>
-                      <th>Students</th>
-                      <th>Hotels 5/10</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sites.map((s) => (
-                      <tr key={s.id}>
-                        <td>
-                          <button
-                            type="button"
-                            className="table-link"
-                            onClick={() => setSelectedSiteIds([s.id])}
-                          >
-                            {s.address}
-                          </button>
-                          <span className="table-sub">{s.corridor}</span>
-                        </td>
-                        <td>{s.population5min}</td>
-                        <td>{s.population10min}</td>
-                        <td>{s.employees025}</td>
-                        <td>{s.employees05}</td>
-                        <td>{s.students05}</td>
-                        <td>
-                          {s.hotels5min} / {s.hotels10min}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d5dee6" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={fmtNumber} />
+                  <Tooltip formatter={(v) => fmtNumber(v)} />
+                  <Bar dataKey="value" name="Count" fill={BLUE} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : null}
+            <DataTable>
+              <thead>
+                <tr>
+                  <th className="sticky-col">Target Corridor</th>
+                  <th>Address</th>
+                  <th>Population 5-Min</th>
+                  <th>Population 10-Min</th>
+                  <th>Employees 0.25-Mile</th>
+                  <th>Employees 0.5-Mile</th>
+                  <th>Student Enrollment</th>
+                  <th>Hotel Rooms 5-Min / 10-Min</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sites.map((s) => (
+                  <tr key={s.id}>
+                    <td className="sticky-col">
+                      <button
+                        type="button"
+                        className="table-link"
+                        onClick={() => onPickSite(s)}
+                      >
+                        {s.corridor}
+                      </button>
+                    </td>
+                    <td>{s.address}</td>
+                    <td>{s.population5min}</td>
+                    <td>{s.population10min}</td>
+                    <td>{s.employees025}</td>
+                    <td>{s.employees05}</td>
+                    <td>{s.students05}</td>
+                    <td>
+                      {s.hotels5min} / {s.hotels10min}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </DataTable>
           </div>
-        ) : null}
-
-        {focus === "site" && siteTab === "2" ? (
-          <div id="chart-2" className="held">
-            <ChartHeading title="Rental ranges" notes={CHART_NOTES["2"]} />
-            <div className="held-box">Waiting on source confirmation</div>
-          </div>
-        ) : null}
-
-        {focus === "comparable" ? (
+        ) : (
           <div id="chart-6">
-            <ChartHeading title="Lease comps" notes={CHART_NOTES["6"]} />
-            {singleLease ? (
-              <dl className="stat-grid dense">
-                <div>
-                  <dt>Tenant</dt>
-                  <dd>{singleLease.lease.tenant}</dd>
-                </div>
-                <div>
-                  <dt>Address</dt>
-                  <dd>{singleLease.lease.address}</dd>
-                </div>
-                <div>
-                  <dt>Square feet</dt>
-                  <dd>{singleLease.lease.sf}</dd>
-                </div>
-                <div>
-                  <dt>Asking rent</dt>
-                  <dd>{singleLease.lease.askingRent}</dd>
-                </div>
-                <div>
-                  <dt>Annual base rent</dt>
-                  <dd>{singleLease.lease.annualBaseRent}</dd>
-                </div>
-                <div>
-                  <dt>Date</dt>
-                  <dd>{singleLease.lease.date}</dd>
-                </div>
-                <div className="span-2">
-                  <dt>Deal notes</dt>
-                  <dd>{singleLease.lease.notes}</dd>
-                </div>
-              </dl>
-            ) : (
-              <div className="data-table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Tenant</th>
-                      <th>SF</th>
-                      <th>Asking</th>
-                      <th>Annual</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tradeArea.leases.map((l, i) =>
-                      selectedLeaseIndexes.includes(i) ? (
-                        <tr key={l.tenant}>
-                          <td>{i + 1}</td>
-                          <td>
-                            <span className="table-strong">{l.tenant}</span>
-                            <span className="table-sub">{l.address}</span>
-                          </td>
-                          <td>{l.sf}</td>
-                          <td>{l.askingRent}</td>
-                          <td>{l.annualBaseRent}</td>
-                          <td>{l.date}</td>
-                        </tr>
-                      ) : null,
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <ChartHeading chart="6" />
+            <DataTable>
+              <thead>
+                <tr>
+                  <th className="sticky-col">Tenant Brand / Concept</th>
+                  <th>Address / Corridor</th>
+                  <th>Square Feet (SF) Total</th>
+                  <th>Asking Rent ($/SF)</th>
+                  <th>Annual Base Rent ($/SF)</th>
+                  <th>Date</th>
+                  <th className="wide-col">Deal Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaseRows.map(({ lease: l, index }) => (
+                  <tr key={l.tenant}>
+                    <td className="sticky-col">
+                      <button
+                        type="button"
+                        className="table-link"
+                        onClick={() => onPickLease(index)}
+                      >
+                        {index + 1}. {l.tenant}
+                      </button>
+                    </td>
+                    <td className="wrap-cell">{l.address}</td>
+                    <td>{l.sf}</td>
+                    <td>{l.askingRent}</td>
+                    <td>{l.annualBaseRent}</td>
+                    <td>{l.date}</td>
+                    <td className="wrap-cell wide-col">{l.notes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </DataTable>
           </div>
-        ) : null}
+        )}
       </div>
     </aside>
   )
 }
+
+const TRAFFIC_WINDOWS = [
+  { key: "8-9 AM", label: "8–9 AM" },
+  { key: "12:30-1:30 PM", label: "12:30–1:30 PM" },
+  { key: "5-6 PM", label: "5–6 PM" },
+] as const
 
 function NeighborhoodDetailPanel({
   tab,
   setTab,
   selectedNames,
   setSelectedNames,
-  hovered,
 }: {
   tab: HoodTab
   setTab: (t: HoodTab) => void
   selectedNames: string[]
   setSelectedNames: (names: string[]) => void
-  hovered: Neighborhood | null
 }) {
   const hoods = tradeArea.neighborhoods.filter((n) =>
     selectedNames.includes(n.name),
   )
-  const single = hoods.length === 1 ? hoods[0] : null
-  const n = single ?? (hoods.length === 0 ? hovered : null)
-  const ageData = n
-    ? Object.entries(n.age).map(([band, value]) => ({
+  const single = hoods.length === 1 ? hoods[0]! : null
+  const pick = (name: string) => setSelectedNames([name])
+  const ageData = single
+    ? Object.entries(single.age).map(([band, value]) => ({
         band,
         value: parseCount(value),
       }))
     : []
-  const incomeData = n
+  const incomeData = single
     ? [
         {
           label: "Median",
-          value: n.medianIncomeSort ?? 0,
-          display: n.medianHhIncome,
+          value: single.medianIncomeSort ?? 0,
+          display: single.medianHhIncome,
         },
         {
           label: "Average",
           value: parseCount(
-            n.averageHhIncome.replace("K", "000").replace("+", ""),
+            single.averageHhIncome.replace("K", "000").replace("+", ""),
           ),
-          display: n.averageHhIncome,
+          display: single.averageHhIncome,
         },
       ]
     : []
-  const trafficData = n
-    ? [
-        {
-          window: "8–9 AM",
-          Weekday: parseCount(n.footTraffic.weekday["8-9 AM"]),
-          Weekend: parseCount(n.footTraffic.weekend["8-9 AM"]),
-        },
-        {
-          window: "12:30–1:30",
-          Weekday: parseCount(n.footTraffic.weekday["12:30-1:30 PM"]),
-          Weekend: parseCount(n.footTraffic.weekend["12:30-1:30 PM"]),
-        },
-        {
-          window: "5–6 PM",
-          Weekday: parseCount(n.footTraffic.weekday["5-6 PM"]),
-          Weekend: parseCount(n.footTraffic.weekend["5-6 PM"]),
-        },
-      ]
+  const trafficData = single
+    ? TRAFFIC_WINDOWS.map((w) => ({
+        window: w.label,
+        Weekdays: parseCount(single.footTraffic.weekday[w.key]!),
+        Weekend: parseCount(single.footTraffic.weekend[w.key]!),
+      }))
     : []
+
+  const emptyNote = (
+    <p className="empty-note">
+      No neighborhoods selected. Use the selector or click the map to choose
+      one or more.
+    </p>
+  )
 
   return (
     <aside className="detail-panel" id="neighborhoods-detail">
       <div className="detail-panel-head">
         <p className="eyebrow">Neighborhoods</p>
-        <h3>
-          {single
-            ? single.name
-            : selectionLabel(
-                selectedNames.length,
-                tradeArea.neighborhoods.length,
-                "neighborhood",
-                "All neighborhoods",
-              )}
-        </h3>
+        <div className="detail-panel-title-row">
+          <h3>
+            {single
+              ? single.name
+              : selectionLabel(
+                  selectedNames.length,
+                  tradeArea.neighborhoods.length,
+                  "Neighborhood",
+                  "All Neighborhoods",
+                )}
+          </h3>
+          {hoods.length < tradeArea.neighborhoods.length ? (
+            <button
+              type="button"
+              className="clear-link"
+              onClick={() => setSelectedNames([...ALL_HOOD_NAMES])}
+            >
+              Show All
+            </button>
+          ) : null}
+        </div>
         {single ? <p className="chart-dek">{single.group}</p> : null}
-        {!single && hovered && !selectedNames.includes(hovered.name) ? (
-          <p className="chart-dek">Hovering {hovered.name} — click to focus</p>
-        ) : null}
       </div>
-      <div className="panel-tabs" role="tablist" aria-label="Neighborhood charts">
-        {(
-          [
-            ["3", "Pop. & employees"],
-            ["4", "Workforce"],
-            ["5", "Foot traffic"],
-          ] as const
-        ).map(([id, label]) => (
+      <div className="panel-tabs" role="tablist" aria-label="Neighborhood Charts">
+        {(["3", "4", "5"] as const).map((id) => (
           <button
             key={id}
             type="button"
@@ -1275,242 +1388,203 @@ function NeighborhoodDetailPanel({
             className={tab === id ? "active" : ""}
             onClick={() => setTab(id)}
           >
-            {label}
+            {chartLabel(id)}
           </button>
         ))}
       </div>
       <div className="detail-panel-body">
         {tab === "3" && (
           <div id="chart-3">
-            <ChartHeading title="Pop. & employees" notes={CHART_NOTES["3"]} />
-            {single && n ? (
+            <ChartHeading chart="3" />
+            {single ? (
               <>
-                <dl className="stat-grid dense">
-                  <div>
-                    <dt>Population (estimate)</dt>
-                    <dd>{n.population}</dd>
-                  </div>
-                  <div>
-                    <dt>Employees</dt>
-                    <dd>{n.employees}</dd>
-                  </div>
-                  <div>
-                    <dt>W/ kids</dt>
-                    <dd>{n.householdsWithKids}</dd>
-                  </div>
-                  <div>
-                    <dt>HH &gt;$150K / &gt;$200K</dt>
-                    <dd>
-                      {n.hhOver150k} / {n.hhOver200k}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Asking rent</dt>
-                    <dd>{n.askingRent}</dd>
-                  </div>
-                </dl>
-                <ResponsiveContainer width="100%" height={170}>
+                <p className="chart-dek">Age Mix by Share of Population (Estimate)</p>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={ageData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#d5dee6" />
-                    <XAxis dataKey="band" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} unit="%" />
-                    <Tooltip />
-                    <Bar dataKey="value" name="Age mix % (estimate)" fill={BLUE} />
+                    <XAxis dataKey="band" tick={{ fontSize: 11 }} />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(v) => `${fmtNumber(v)}%`}
+                    />
+                    <Tooltip
+                      formatter={(v) => `${Number(v).toFixed(1)}%`}
+                    />
+                    <Bar dataKey="value" name="Age Mix (Estimate)" fill={BLUE} />
                   </BarChart>
                 </ResponsiveContainer>
               </>
+            ) : null}
+            {hoods.length === 0 ? (
+              emptyNote
             ) : (
-              <div className="data-table-wrap">
-                <table className="data-table">
+              <>
+                <DataTable>
                   <thead>
                     <tr>
-                      <th>Neighborhood</th>
-                      <th>Pop.</th>
+                      <th className="sticky-col">Neighborhood</th>
+                      <th>Population</th>
                       <th>Employees</th>
-                      <th>W/ kids</th>
-                      <th>&gt;$150K</th>
-                      <th>&gt;$200K</th>
-                      <th>Asking</th>
+                      <th>W/ Kids</th>
+                      <th>HH &gt;$150K</th>
+                      <th>HH &gt;$200K</th>
+                      <th>Asking Rent (Blended $/SF)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {hoods.map((hood) => (
                       <tr key={hood.name}>
-                        <td>
-                          <button
-                            type="button"
-                            className="table-link"
-                            onClick={() => setSelectedNames([hood.name])}
-                          >
-                            {hood.name}
-                          </button>
-                          <span className="table-sub">{hood.group}</span>
-                        </td>
+                        <HoodNameCell hood={hood} onPick={pick} />
                         <td>{hood.population}</td>
                         <td>{hood.employees}</td>
                         <td>{hood.householdsWithKids}</td>
                         <td>{hood.hhOver150k}</td>
                         <td>{hood.hhOver200k}</td>
-                        <td>{hood.askingRent}</td>
+                        <td>
+                          <RentCell value={hood.askingRent} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
-                </table>
-              </div>
+                </DataTable>
+                <ul className="table-footnotes">
+                  {tradeArea.chart3Footnotes.map((fn) => (
+                    <li key={fn.marker}>
+                      {fn.marker.length <= 2 ? (
+                        <sup className="rent-mark">{fn.marker}</sup>
+                      ) : (
+                        <strong>{fn.marker}: </strong>
+                      )}{" "}
+                      {fn.text}
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         )}
         {tab === "4" && (
           <div id="chart-4">
-            <ChartHeading title="Workforce" notes={CHART_NOTES["4"]} />
-            {single && n ? (
-              <>
-                <dl className="stat-grid dense">
-                  <div>
-                    <dt>Median HH income (estimate)</dt>
-                    <dd>{n.medianHhIncome}</dd>
-                  </div>
-                  <div>
-                    <dt>Average HH income (estimate)</dt>
-                    <dd>{n.averageHhIncome}</dd>
-                  </div>
-                  <div>
-                    <dt>Bachelor’s or higher</dt>
-                    <dd>{n.bachelorsOrHigher}</dd>
-                  </div>
-                </dl>
-                <p className="sectors">
-                  <b>Top sectors:</b> {n.topJobSectors}
-                </p>
-                <p className="sectors">
-                  <b>Anchors:</b> {n.anchorCompanies}
-                </p>
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={incomeData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#d5dee6" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                    <YAxis
-                      tick={{ fontSize: 10 }}
-                      tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}K`}
-                    />
-                    <Tooltip
-                      formatter={(_v, _n, item) => [
-                        (item?.payload as { display?: string })?.display ?? _v,
-                        "Income (estimate)",
-                      ]}
-                    />
-                    <Bar dataKey="value" fill={BLUE} />
-                  </BarChart>
-                </ResponsiveContainer>
-                <div className="legend compact">
-                  <p className="eyebrow">Map income shading</p>
-                  <ul>
-                    {INCOME_STOPS.map((stop) => (
-                      <li key={stop.label}>
-                        <i style={{ background: stop.color }} />
-                        {stop.label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
+            <ChartHeading chart="4" />
+            {single ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={incomeData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d5dee6" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(v) => `$${fmtNumber(Math.round(Number(v) / 1000))}K`}
+                  />
+                  <Tooltip
+                    formatter={(_v, _n, item) => [
+                      (item?.payload as { display?: string })?.display ?? _v,
+                      "Income (Estimate)",
+                    ]}
+                  />
+                  <Bar dataKey="value" fill={BLUE} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : null}
+            {hoods.length === 0 ? (
+              emptyNote
             ) : (
-              <div className="data-table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Neighborhood</th>
-                      <th>Median HH</th>
-                      <th>Average HH</th>
-                      <th>Bachelor’s+</th>
-                      <th>Top sectors</th>
+              <DataTable>
+                <thead>
+                  <tr>
+                    <th className="sticky-col">Neighborhood</th>
+                    <th>Median HH Income</th>
+                    <th>Average HH Income</th>
+                    <th>Bachelor's Degree or Higher</th>
+                    <th className="sector-col">Top Three Job Sectors</th>
+                    <th className="anchor-col">Anchor Companies</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hoods.map((hood) => (
+                    <tr key={hood.name}>
+                      <HoodNameCell hood={hood} onPick={pick} />
+                      <td>{hood.medianHhIncome}</td>
+                      <td>{hood.averageHhIncome}</td>
+                      <td>{hood.bachelorsOrHigher}</td>
+                      <td className="wrap-cell sector-col">
+                        {hood.topJobSectors}
+                      </td>
+                      <td className="wrap-cell anchor-col">
+                        {hood.anchorCompanies}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {hoods.map((hood) => (
-                      <tr key={hood.name}>
-                        <td>
-                          <button
-                            type="button"
-                            className="table-link"
-                            onClick={() => setSelectedNames([hood.name])}
-                          >
-                            {hood.name}
-                          </button>
-                        </td>
-                        <td>{hood.medianHhIncome}</td>
-                        <td>{hood.averageHhIncome}</td>
-                        <td>{hood.bachelorsOrHigher}</td>
-                        <td className="wrap-cell">{hood.topJobSectors}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </DataTable>
             )}
           </div>
         )}
         {tab === "5" && (
           <div id="chart-5">
             <ChartHeading
-              title="Foot traffic"
-              notes={CHART_NOTES["5"]}
+              chart="5"
+              dek="Modeled pedestrians per hour on a typical weekday and weekend day, by time of day."
               extraNotes={
-                single?.name === "Gramercy Park" ||
                 selectedNames.includes("Gramercy Park")
                   ? [tradeArea.gramercyNote]
                   : undefined
               }
             />
-            {single && n ? (
-              <ResponsiveContainer width="100%" height={200}>
+            {single ? (
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={trafficData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#d5dee6" />
-                  <XAxis dataKey="window" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                  <XAxis dataKey="window" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={fmtNumber} />
+                  <Tooltip formatter={(v) => fmtNumber(v)} />
                   <Legend />
-                  <Bar dataKey="Weekday" fill={NAVY} />
+                  <Bar dataKey="Weekdays" fill={NAVY} />
                   <Bar dataKey="Weekend" fill="#5f87a8" />
                 </BarChart>
               </ResponsiveContainer>
+            ) : null}
+            {hoods.length === 0 ? (
+              emptyNote
             ) : (
-              <div className="data-table-wrap">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Neighborhood</th>
-                      <th>Wk 8–9</th>
-                      <th>We 8–9</th>
-                      <th>Wk lunch</th>
-                      <th>We lunch</th>
-                      <th>Wk 5–6</th>
-                      <th>We 5–6</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {hoods.map((hood) => (
-                      <tr key={hood.name}>
-                        <td>
-                          <button
-                            type="button"
-                            className="table-link"
-                            onClick={() => setSelectedNames([hood.name])}
-                          >
-                            {hood.name}
-                          </button>
-                        </td>
-                        <td>{hood.footTraffic.weekday["8-9 AM"]}</td>
-                        <td>{hood.footTraffic.weekend["8-9 AM"]}</td>
-                        <td>{hood.footTraffic.weekday["12:30-1:30 PM"]}</td>
-                        <td>{hood.footTraffic.weekend["12:30-1:30 PM"]}</td>
-                        <td>{hood.footTraffic.weekday["5-6 PM"]}</td>
-                        <td>{hood.footTraffic.weekend["5-6 PM"]}</td>
-                      </tr>
+              <DataTable>
+                <thead>
+                  <tr>
+                    <th className="sticky-col" rowSpan={2}>
+                      Neighborhood
+                    </th>
+                    <th className="group-head" colSpan={3}>
+                      Weekdays
+                    </th>
+                    <th className="group-head" colSpan={3}>
+                      Weekend
+                    </th>
+                  </tr>
+                  <tr>
+                    {[...TRAFFIC_WINDOWS, ...TRAFFIC_WINDOWS].map((w, i) => (
+                      <th key={`${w.key}-${i}`} className="sub-head">
+                        {w.label}
+                      </th>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hoods.map((hood) => (
+                    <tr key={hood.name}>
+                      <HoodNameCell hood={hood} onPick={pick} />
+                      {TRAFFIC_WINDOWS.map((w) => (
+                        <td key={`wd-${w.key}`}>
+                          {hood.footTraffic.weekday[w.key]}
+                        </td>
+                      ))}
+                      {TRAFFIC_WINDOWS.map((w) => (
+                        <td key={`we-${w.key}`}>
+                          {hood.footTraffic.weekend[w.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </DataTable>
             )}
           </div>
         )}
@@ -1523,45 +1597,30 @@ function SourcesSection() {
   return (
     <section className="view-section sources-section" id="sources">
       <header className="view-header">
-        <h2>Sources &amp; footnotes</h2>
+        <h2>Sources &amp; Footnotes</h2>
         <p>
-          Endnotes from the {tradeArea.updated} Manhattan Trade Area Analysis
-          master data. Numbers match the Word document. Approximate figures on
-          the maps and charts are labeled estimate, modeled, or broker estimate.
+          Footnotes and sources for the Manhattan Trade Area Analysis, November
+          2026. Approximate figures are labeled estimate, modeled, or broker
+          estimate. Click the (i) next to any panel header for chart-specific
+          notes.
         </p>
       </header>
 
       <div className="sources-layout">
         <article className="chart-panel">
-          <h3>Reading notes</h3>
-          <ul className="footnote-list">
-            <li>
-              Chart-specific caveats sit behind the ⓘ next to each panel
-              header (demand drivers, workforce, foot traffic, lease comps,
-              etc.).
-            </li>
-            <li>
-              Approximate figures on the maps and charts are labeled estimate,
-              modeled, or broker estimate.
-            </li>
-            <li>
-              {tradeArea.credits.census} Base map: {tradeArea.credits.osm} ·
-              CARTO light tiles.
-            </li>
-          </ul>
-        </article>
-
-        <article className="chart-panel">
-          <h3>Numbered sources</h3>
-          <p className="chart-dek">
-            From the master data References sheet (same numbering as the
-            analysis document).
-          </p>
+          <h3>References &amp; Sources</h3>
+          <p className="chart-dek">Numbering matches the analysis report.</p>
           <ol className="source-list">
             {tradeArea.references.map((ref) => (
               <li key={ref.no} id={`source-${ref.no}`}>
                 <strong>[{ref.no}]</strong>
-                <span>{linkifySource(ref.source)}</span>
+                <span>
+                  {sourceLines(ref.no, ref.source).map((line) => (
+                    <span className="source-line" key={line}>
+                      {linkifySource(line)}
+                    </span>
+                  ))}
+                </span>
               </li>
             ))}
           </ol>
@@ -1580,12 +1639,12 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
           src={`${import.meta.env.BASE_URL}sir-logo.svg`}
           alt="Sotheby’s International Realty"
         />
-        <p className="hero-kicker">CRE Matrix · Manhattan F&B Trade Area</p>
-        <h1>CRE Matrix</h1>
+        <p className="hero-kicker">{SITE_TITLE} · Trade Area Analysis</p>
+        <h1>{SITE_TITLE}</h1>
         <p className="hero-dek">
           An interactive walk through Manhattan sites and neighborhoods — where
           the target neighborhoods sit, who lives and works there, and how the
-          three site corridors compare. Every figure was manually picked and
+          three target corridors compare. Every figure was manually picked and
           verified for this presentation from{" "}
           <a className="hero-inline-link" href="#sources">
             sources
@@ -1594,7 +1653,7 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
         </p>
         <div className="hero-actions">
           <button type="button" className="hero-action" onClick={onExplore}>
-            Explore sites &amp; corridors <span>↓</span>
+            Explore Sites &amp; Corridors <span>↓</span>
           </button>
           <button
             type="button"
@@ -1606,8 +1665,7 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
         </div>
         <div className="hero-meta">
           <span>Updated {tradeArea.updated}</span>
-          <span>26 neighborhoods · 3 sites</span>
-          <span>Table 2 on hold</span>
+          <span>26 Neighborhoods · 3 Target Corridors</span>
         </div>
       </div>
     </section>
@@ -1617,13 +1675,14 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
 export default function App() {
   const [tocOpen, setTocOpen] = useState(false)
   const [active, setActive] = useState("home")
-  const [hovered, setHovered] = useState<Neighborhood | null>(null)
   const [selectedHoodNames, setSelectedHoodNames] = useState<string[]>([
     ...ALL_HOOD_NAMES,
   ])
   const [sitesFocus, setSitesFocus] = useState<SitesFocus>("site")
-  const [siteTab, setSiteTab] = useState<SiteChartTab>("1")
   const [hoodTab, setHoodTab] = useState<HoodTab>("3")
+  const [selectedIncomeBand, setSelectedIncomeBand] = useState<string | null>(
+    null,
+  )
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([
     DEFAULT_SITE_ID,
   ])
@@ -1633,22 +1692,23 @@ export default function App() {
   const [siteLayers, setSiteLayers] = useState<Record<LayerKey, boolean>>({
     income: false,
     labels: false,
-    radii: true,
+    radius025: true,
+    radius05: true,
     sites: true,
-    leases: true,
+    leases: false,
   })
   const [hoodLayers, setHoodLayers] = useState<Record<LayerKey, boolean>>({
     income: true,
     labels: true,
-    radii: false,
-    sites: true,
+    radius025: false,
+    radius05: false,
+    sites: false,
     leases: false,
   })
 
   const pickSite = (site: Site) => {
     setSelectedSiteIds([site.id])
     setSitesFocus("site")
-    setSiteTab("1")
   }
   const pickLease = (index: number) => {
     setSelectedLeaseIndexes([index])
@@ -1657,6 +1717,14 @@ export default function App() {
   const pickHood = (n: Neighborhood) => {
     setSelectedHoodNames([n.name])
   }
+  const pickIncomeBand = (label: string) => {
+    setSelectedIncomeBand((prev) => (prev === label ? null : label))
+    setHoodLayers((prev) => (prev.income ? prev : { ...prev, income: true }))
+  }
+
+  useEffect(() => {
+    document.title = SITE_TITLE
+  }, [])
 
   useEffect(() => {
     const ids = [
@@ -1695,24 +1763,29 @@ export default function App() {
       const id = a.getAttribute("href")?.slice(1)
       if (!id) return
       e.preventDefault()
-      if (id === "chart-1" || id === "chart-2") {
+      if (id === "chart-1") {
         setSitesFocus("site")
         setSelectedSiteIds([...ALL_SITE_IDS])
-        setSiteTab(id.slice(-1) as SiteChartTab)
-        scrollToId("sites-corridors")
+        scrollToId("sites-detail")
       } else if (id === "chart-6") {
         setSitesFocus("comparable")
         setSelectedLeaseIndexes([...ALL_LEASE_INDEXES])
-        scrollToId("sites-corridors")
+        scrollToId("sites-detail")
       } else if (id === "chart-3" || id === "chart-4" || id === "chart-5") {
         setSelectedHoodNames([...ALL_HOOD_NAMES])
         setHoodTab(id.slice(-1) as HoodTab)
-        scrollToId("neighborhoods")
+        scrollToId("neighborhoods-detail")
       }
     }
     document.addEventListener("click", onClick)
     return () => document.removeEventListener("click", onClick)
   }, [])
+
+  const siteHighlight =
+    sitesFocus === "site" && selectedSiteIds.length < tradeArea.sites.length
+  const leaseHighlight =
+    sitesFocus === "comparable" &&
+    selectedLeaseIndexes.length < tradeArea.leases.length
 
   return (
     <div className={`app ${tocOpen ? "toc-expanded" : ""}`}>
@@ -1723,11 +1796,8 @@ export default function App() {
         <section className="view-section" id="sites-corridors">
           <header className="view-header with-filter">
             <div className="view-header-copy">
-              <h2>Sites &amp; corridors</h2>
-              <p>
-                Starts on 835 Washington St. Use the selector for sites or lease
-                comps, or click markers on the map.
-              </p>
+              <h2>Sites &amp; Corridors</h2>
+              <p>Select a site or lease comp, or click a marker on the map.</p>
             </div>
             <SitesCompsSelect
               focus={sitesFocus}
@@ -1743,7 +1813,8 @@ export default function App() {
             <div className="layer-toggles">
               {(
                 [
-                  ["radii", "0.25 / 0.5 mi circles"],
+                  ["radius025", "0.25-Mile Radius"],
+                  ["radius05", "0.5-Mile Radius"],
                   ["leases", "Comparables"],
                 ] as const
               ).map(([key, label]) => (
@@ -1759,48 +1830,78 @@ export default function App() {
                 </label>
               ))}
             </div>
-            <div className="map-legend-keys inline">
+            <div
+              className="map-legend-keys inline map-legend"
+              role="group"
+              aria-label="Map Legend"
+            >
+              <span className="key-label">Map Legend</span>
               <div className="site-key">
-                <span className="key-label">Sites</span>
+                <span className="key-label">Target Corridors</span>
                 {tradeArea.sites.map((s) => (
-                  <span key={s.id}>
+                  <button
+                    key={s.id}
+                    type="button"
+                    className={`legend-btn${siteHighlight && selectedSiteIds.includes(s.id) ? " active" : ""}`}
+                    title={`Select and zoom to ${s.address}`}
+                    onClick={() => pickSite(s)}
+                  >
                     <span dangerouslySetInnerHTML={{ __html: markerHtml(s) }} />
                     {s.address}
-                  </span>
+                  </button>
                 ))}
               </div>
               <span className="legend-sep" aria-hidden="true" />
               <div className="site-key comps-key">
-                <span className="key-label">Lease comps</span>
+                <span className="key-label">Lease Comps</span>
                 {tradeArea.leases.map((l, i) => (
-                  <span key={l.tenant}>
+                  <button
+                    key={l.tenant}
+                    type="button"
+                    className={`legend-btn${leaseHighlight && selectedLeaseIndexes.includes(i) ? " active" : ""}`}
+                    title={`Open lease comp: ${l.tenant}`}
+                    onClick={() => pickLease(i)}
+                  >
                     <span className="lease-pin legend-pin">{i + 1}</span>
                     {l.tenant}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="map-stage split">
+          <div className="map-stage single">
             <TradeMap
               mode="sites"
               layers={siteLayers}
+              focus={sitesFocus}
               selectedNames={[]}
               selectedSiteIds={selectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
               onSelect={() => {}}
-              onHover={() => {}}
               onSelectSite={pickSite}
               onSelectLease={pickLease}
             />
+          </div>
+          <p className="map-hint">
+            Population and Hotel Rooms use 5- and 10-minute walk areas;
+            Employees and Student Enrollment use 0.25- and 0.5-mile
+            straight-line radii.
+          </p>
+          <p className="map-hint">
+            Click a numbered marker to view the lease comp.
+          </p>
+
+          <div className="charts-below">
             <SitesDetailPanel
               focus={sitesFocus}
-              siteTab={siteTab}
-              setSiteTab={setSiteTab}
+              setFocus={setSitesFocus}
               selectedSiteIds={selectedSiteIds}
               setSelectedSiteIds={setSelectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
+              setSelectedLeaseIndexes={setSelectedLeaseIndexes}
+              onPickSite={pickSite}
+              onPickLease={pickLease}
             />
           </div>
         </section>
@@ -1811,7 +1912,8 @@ export default function App() {
               <h2>Neighborhoods</h2>
               <p>
                 All 26 neighborhoods by default as a comparison table. Click the
-                map or use the selector to focus one or several.
+                map or use the selector to focus one or several; Clear All
+                removes the selection.
               </p>
             </div>
             <MultiSelect
@@ -1819,8 +1921,8 @@ export default function App() {
               allIds={ALL_HOOD_NAMES}
               selected={selectedHoodNames}
               onChange={setSelectedHoodNames}
-              allLabel="All neighborhoods"
-              singular="neighborhood"
+              allLabel="All Neighborhoods"
+              singular="Neighborhood"
               options={tradeArea.neighborhoods.map((hood) => ({
                 id: hood.name,
                 label: `${hood.name} · ${hood.group}`,
@@ -1832,8 +1934,8 @@ export default function App() {
             <div className="layer-toggles">
               {(
                 [
-                  ["income", "Income shading"],
-                  ["labels", "Neighborhood labels"],
+                  ["income", "Income Shading"],
+                  ["labels", "Neighborhood Labels"],
                 ] as const
               ).map(([key, label]) => (
                 <label key={key}>
@@ -1850,32 +1952,48 @@ export default function App() {
             </div>
             <div
               className="map-legend-keys inline income-key"
-              aria-label="Median household income shading"
+              role="group"
+              aria-label="Median Household Income Shading"
             >
-              <span className="key-label">Median HH income</span>
+              <span className="key-label">Median Household Income</span>
               {INCOME_STOPS.map((stop) => (
-                <span key={stop.label} className="income-swatch">
+                <button
+                  key={stop.label}
+                  type="button"
+                  className={`income-swatch button${
+                    selectedIncomeBand === stop.label ? " active" : ""
+                  }${
+                    selectedIncomeBand && selectedIncomeBand !== stop.label
+                      ? " dimmed"
+                      : ""
+                  }`}
+                  aria-pressed={selectedIncomeBand === stop.label}
+                  title={`Highlight ${stop.label} neighborhoods`}
+                  onClick={() => pickIncomeBand(stop.label)}
+                >
                   <i style={{ background: stop.color }} />
                   {stop.label}
-                </span>
+                </button>
               ))}
             </div>
           </div>
 
-          <div className="map-stage split">
+          <div className="map-stage single">
             <TradeMap
               mode="neighborhoods"
               layers={hoodLayers}
               selectedNames={selectedHoodNames}
+              selectedIncomeBand={selectedIncomeBand}
               onSelect={pickHood}
-              onHover={setHovered}
             />
+          </div>
+
+          <div className="charts-below">
             <NeighborhoodDetailPanel
               tab={hoodTab}
               setTab={setHoodTab}
               selectedNames={selectedHoodNames}
               setSelectedNames={setSelectedHoodNames}
-              hovered={hovered}
             />
           </div>
         </section>
@@ -1897,9 +2015,9 @@ export default function App() {
             <p>
               Full citations:{" "}
               <a href="#sources" style={{ color: "#9bb6cb" }}>
-                Sources &amp; footnotes
+                Sources &amp; Footnotes
               </a>
-              . Asking rents N/A pending update · Table 2 on hold.
+              .
             </p>
           </div>
         </footer>

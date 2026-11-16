@@ -55,12 +55,13 @@ export type Lease = {
   notes: string
 }
 
-export const tradeArea = data as {
+export const tradeArea = data as unknown as {
   updated: string
   sites: Site[]
   neighborhoods: Neighborhood[]
   leases: Lease[]
   references: { no: string; source: string }[]
+  chart3Footnotes: { marker: string; text: string }[]
   hoverLine: string
   clickSourceLine: string
   credits: { osm: string; census: string; footTraffic: string }
@@ -77,7 +78,7 @@ export const INCOME_STOPS = [
   { max: 150_000, color: "#9bb6cb", label: "$120–150K" },
   { max: 180_000, color: "#5f87a8", label: "$150–180K" },
   { max: 210_000, color: "#2f5f84", label: "$180–210K" },
-  { max: Infinity, color: "#002349", label: "$210K–$250K+" },
+  { max: Infinity, color: "#002349", label: "$250K+" },
 ] as const
 
 export const NAVY = "#002349"
