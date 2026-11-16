@@ -316,7 +316,7 @@ function TradeMap({
     const map = L.map(containerRef.current, {
       scrollWheelZoom: true,
       zoomControl: true,
-    }).setView([40.732, -73.992], mode === "sites" ? 14.5 : 14)
+    }).setView([40.732, -73.992], mode === "sites" ? 14 : 13.25)
 
     L.tileLayer(BASEMAP_URL, {
       attribution: BASEMAP_ATTR,
@@ -354,10 +354,9 @@ function TradeMap({
         tracts.addData(geo)
         if (modeRef.current === "neighborhoods") {
           map.fitBounds(tracts.getBounds(), {
-            padding: [40, 40],
-            maxZoom: 15,
+            padding: [56, 56],
+            maxZoom: 13.5,
           })
-          map.zoomIn()
         }
 
         const buckets: Record<string, LatLngTuple[]> = {}
@@ -523,19 +522,20 @@ function TradeMap({
     }
 
     if (single) {
-      map.setView(single, 16, { animate })
+      map.setView(single, 15, { animate })
       return
     }
+    const includeComps = layers.leases
     const bounds = L.latLngBounds(
       pts.length
         ? pts
         : [
             ...tradeArea.sites.map((s) => s.position as LatLngTuple),
-            ...LEASE_PINS.map((p) => p.position),
+            ...(includeComps ? LEASE_PINS.map((p) => p.position) : []),
           ],
     )
-    map.fitBounds(bounds, { padding: [56, 56], maxZoom: 15, animate })
-  }, [mode, focus, selectedSiteIds, selectedLeaseIndexes])
+    map.fitBounds(bounds, { padding: [72, 72], maxZoom: 14, animate })
+  }, [mode, focus, layers.leases, selectedSiteIds, selectedLeaseIndexes])
 
   return <div ref={containerRef} className="map-canvas" />
 }
@@ -1851,22 +1851,26 @@ export default function App() {
                   </button>
                 ))}
               </div>
-              <span className="legend-sep" aria-hidden="true" />
-              <div className="site-key comps-key">
-                <span className="key-label">Lease Comps</span>
-                {tradeArea.leases.map((l, i) => (
-                  <button
-                    key={l.tenant}
-                    type="button"
-                    className={`legend-btn${leaseHighlight && selectedLeaseIndexes.includes(i) ? " active" : ""}`}
-                    title={`Open lease comp: ${l.tenant}`}
-                    onClick={() => pickLease(i)}
-                  >
-                    <span className="lease-pin legend-pin">{i + 1}</span>
-                    {l.tenant}
-                  </button>
-                ))}
-              </div>
+              {siteLayers.leases ? (
+                <>
+                  <span className="legend-sep" aria-hidden="true" />
+                  <div className="site-key comps-key">
+                    <span className="key-label">Lease Comps</span>
+                    {tradeArea.leases.map((l, i) => (
+                      <button
+                        key={l.tenant}
+                        type="button"
+                        className={`legend-btn${leaseHighlight && selectedLeaseIndexes.includes(i) ? " active" : ""}`}
+                        title={`Open lease comp: ${l.tenant}`}
+                        onClick={() => pickLease(i)}
+                      >
+                        <span className="lease-pin legend-pin">{i + 1}</span>
+                        {l.tenant}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
 
@@ -1888,9 +1892,11 @@ export default function App() {
             Employees and Student Enrollment use 0.25- and 0.5-mile
             straight-line radii.
           </p>
-          <p className="map-hint">
-            Click a numbered marker to view the lease comp.
-          </p>
+          {siteLayers.leases ? (
+            <p className="map-hint">
+              Click a numbered marker to view the lease comp.
+            </p>
+          ) : null}
 
           <div className="charts-below">
             <SitesDetailPanel
