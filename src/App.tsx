@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import * as L from "leaflet"
 import {
   FileText,
+  Home,
   Info,
   Menu,
   PanelLeftClose,
@@ -55,12 +56,13 @@ type LayerKey =
   | "leases"
 type LatLngTuple = [number, number]
 type SitesFocus = "site" | "comparable"
+type SiteTab = "1" | "2" | "6"
 type HoodTab = "3" | "4" | "5"
-type ChartId = "1" | "3" | "4" | "5" | "6"
+type ChartId = "1" | "2" | "3" | "4" | "5" | "6"
 
-/** Exact chart names (Chart 2 is hidden for now). */
 const CHART_NAMES: Record<ChartId, string> = {
   "1": "Trade Area Demand Drivers",
+  "2": "Ground-Floor Retail Rental Ranges",
   "3": "Population, Employees & Asking Rents",
   "4": "Residential & Workforce Detail",
   "5": "Foot Traffic by Time of Day",
@@ -79,9 +81,9 @@ type TocItem = {
 const TOC: TocItem[] = [
   {
     id: "home",
-    number: "0",
+    number: "",
     label: "Home",
-    title: "0 Home",
+    title: "Home",
     children: [],
   },
   {
@@ -91,6 +93,7 @@ const TOC: TocItem[] = [
     title: "I Sites & Corridors (Charts 1, 2 and 6)",
     children: [
       { id: "chart-1", label: chartLabel("1") },
+      { id: "chart-2", label: chartLabel("2") },
       { id: "chart-6", label: chartLabel("6") },
     ],
   },
@@ -108,8 +111,8 @@ const TOC: TocItem[] = [
   {
     id: "sources",
     number: "III",
-    label: "Sources & Footnotes",
-    title: "III Sources & Footnotes",
+    label: "References & Sources",
+    title: "III References & Sources",
     children: [],
   },
 ]
@@ -609,7 +612,13 @@ function TableOfContents({
                   navigate(section.id)
                 }}
               >
-                <b>{section.number}</b>
+                <b className={section.id === "home" ? "toc-home-icon" : undefined}>
+                  {section.id === "home" ? (
+                    <Home size={16} strokeWidth={2.25} aria-hidden="true" />
+                  ) : (
+                    section.number
+                  )}
+                </b>
                 {open && <span>{section.label}</span>}
               </a>
               {open && section.children.length > 0 && (
@@ -682,17 +691,23 @@ function useMenuDismiss(open: boolean, onClose: () => void) {
 
 const CHART_NOTES: Record<ChartId, readonly string[]> = {
   "1": [
-    "Population and hotel rooms are for 5- and 10-minute walks (RadiusMapper). Walk-time areas are not drawn on the map.",
-    "Employee counts and student enrollment use the 0.25- and 0.5-mile straight-line radii shown on the map.",
+    "Population and Hotel Rooms are for 5- and 10-minute walks (RadiusMapper). Walk-time areas are not drawn on the map.",
+    "Employees and Student Enrollment use the 0.25- and 0.5-mile straight-line radii shown on the map.",
+  ],
+  "2": [
+    "Ground-floor retail rental ranges are still being verified and will be added when sources are confirmed.",
   ],
   "3": [
     tradeArea.clickSourceLine,
-    "Asking rents are blended figures quoted by landlords' listing agents in November 2026; symbols are explained in the footnotes under the table.",
+    ...tradeArea.chart3Footnotes.map((fn) =>
+      fn.marker.length <= 2 ? `${fn.marker} ${fn.text}` : `${fn.marker}: ${fn.text}`,
+    ),
     "Full comparison tables are in the analysis PDF.",
   ],
   "4": [
     tradeArea.clickSourceLine,
     "“$250K+” means at least one tract is at the Census top code ($250,001), so the true figure is a minimum.",
+    "Map income shading uses the same Median HH Income bands as this chart.",
     "Full comparison tables are in the analysis PDF.",
   ],
   "5": [
@@ -739,7 +754,7 @@ function NoteTip({
             ))}
           </ul>
           <a href="#sources" onClick={() => setOpen(false)}>
-            Sources &amp; Footnotes
+            References &amp; Sources
           </a>
         </div>
       ) : null}
@@ -1071,6 +1086,8 @@ function SitesCompsSelect({
 function SitesDetailPanel({
   focus,
   setFocus,
+  siteTab,
+  setSiteTab,
   selectedSiteIds,
   setSelectedSiteIds,
   selectedLeaseIndexes,
@@ -1080,6 +1097,8 @@ function SitesDetailPanel({
 }: {
   focus: SitesFocus
   setFocus: (f: SitesFocus) => void
+  siteTab: SiteTab
+  setSiteTab: (t: SiteTab) => void
   selectedSiteIds: string[]
   setSelectedSiteIds: (ids: string[]) => void
   selectedLeaseIndexes: number[]
@@ -1175,19 +1194,14 @@ function SitesDetailPanel({
       </div>
 
       <div className="panel-tabs" role="tablist" aria-label="Site Charts">
-        {(
-          [
-            ["1", "site"],
-            ["6", "comparable"],
-          ] as const
-        ).map(([id, tabFocus]) => (
+        {(["1", "2", "6"] as const).map((id) => (
           <button
             key={id}
             type="button"
             role="tab"
-            aria-selected={focus === tabFocus}
-            className={focus === tabFocus ? "active" : ""}
-            onClick={() => setFocus(tabFocus)}
+            aria-selected={siteTab === id}
+            className={siteTab === id ? "active" : ""}
+            onClick={() => setSiteTab(id)}
           >
             {chartLabel(id)}
           </button>
@@ -1195,7 +1209,7 @@ function SitesDetailPanel({
       </div>
 
       <div className="detail-panel-body">
-        {focus === "site" ? (
+        {siteTab === "1" ? (
           <div id="chart-1">
             <ChartHeading chart="1" />
             {singleSite ? (
@@ -1219,7 +1233,8 @@ function SitesDetailPanel({
                   <th>Employees 0.25-Mile</th>
                   <th>Employees 0.5-Mile</th>
                   <th>Student Enrollment</th>
-                  <th>Hotel Rooms 5-Min / 10-Min</th>
+                  <th>Hotel Rooms 5-Min</th>
+                  <th>Hotel Rooms 10-Min</th>
                 </tr>
               </thead>
               <tbody>
@@ -1240,15 +1255,26 @@ function SitesDetailPanel({
                     <td>{s.employees025}</td>
                     <td>{s.employees05}</td>
                     <td>{s.students05}</td>
-                    <td>
-                      {s.hotels5min} / {s.hotels10min}
-                    </td>
+                    <td>{s.hotels5min}</td>
+                    <td>{s.hotels10min}</td>
                   </tr>
                 ))}
               </tbody>
             </DataTable>
           </div>
-        ) : (
+        ) : null}
+
+        {siteTab === "2" ? (
+          <div id="chart-2" className="held">
+            <ChartHeading chart="2" />
+            <div className="held-box">
+              The rental range data is still being verified and will be added
+              here.
+            </div>
+          </div>
+        ) : null}
+
+        {siteTab === "6" ? (
           <div id="chart-6">
             <ChartHeading chart="6" />
             <DataTable>
@@ -1286,7 +1312,7 @@ function SitesDetailPanel({
               </tbody>
             </DataTable>
           </div>
-        )}
+        ) : null}
       </div>
     </aside>
   )
@@ -1447,18 +1473,9 @@ function NeighborhoodDetailPanel({
                     ))}
                   </tbody>
                 </DataTable>
-                <ul className="table-footnotes">
-                  {tradeArea.chart3Footnotes.map((fn) => (
-                    <li key={fn.marker}>
-                      {fn.marker.length <= 2 ? (
-                        <sup className="rent-mark">{fn.marker}</sup>
-                      ) : (
-                        <strong>{fn.marker}: </strong>
-                      )}{" "}
-                      {fn.text}
-                    </li>
-                  ))}
-                </ul>
+                <p className="table-footnote-line">
+                  † NNN rent. ‡ Single quote.
+                </p>
               </>
             )}
           </div>
@@ -1597,7 +1614,7 @@ function SourcesSection() {
   return (
     <section className="view-section sources-section" id="sources">
       <header className="view-header">
-        <h2>Sources &amp; Footnotes</h2>
+        <h2>References &amp; Sources</h2>
         <p>
           Footnotes and sources for the Manhattan Trade Area Analysis, November
           2026. Approximate figures are labeled estimate, modeled, or broker
@@ -1608,7 +1625,7 @@ function SourcesSection() {
 
       <div className="sources-layout">
         <article className="chart-panel">
-          <h3>References &amp; Sources</h3>
+          <h3>Numbered Sources</h3>
           <p className="chart-dek">Numbering matches the analysis report.</p>
           <ol className="source-list">
             {tradeArea.references.map((ref) => (
@@ -1639,7 +1656,6 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
           src={`${import.meta.env.BASE_URL}sir-logo.svg`}
           alt="Sotheby’s International Realty"
         />
-        <p className="hero-kicker">{SITE_TITLE} · Trade Area Analysis</p>
         <h1>{SITE_TITLE}</h1>
         <p className="hero-dek">
           An interactive walk through Manhattan sites and neighborhoods — where
@@ -1647,7 +1663,7 @@ function HomeHero({ onExplore }: { onExplore: () => void }) {
           three target corridors compare. Every figure was manually picked and
           verified for this presentation from{" "}
           <a className="hero-inline-link" href="#sources">
-            sources
+            References &amp; Sources
           </a>
           .
         </p>
@@ -1679,6 +1695,7 @@ export default function App() {
     ...ALL_HOOD_NAMES,
   ])
   const [sitesFocus, setSitesFocus] = useState<SitesFocus>("site")
+  const [siteTab, setSiteTab] = useState<SiteTab>("1")
   const [hoodTab, setHoodTab] = useState<HoodTab>("3")
   const [selectedIncomeBand, setSelectedIncomeBand] = useState<string | null>(
     null,
@@ -1689,6 +1706,19 @@ export default function App() {
   const [selectedLeaseIndexes, setSelectedLeaseIndexes] = useState<number[]>([
     ...ALL_LEASE_INDEXES,
   ])
+
+  const setSitesFocusAndTab = (focus: SitesFocus) => {
+    setSitesFocus(focus)
+    setSiteTab((prev) => {
+      if (focus === "comparable") return "6"
+      return prev === "6" ? "1" : prev
+    })
+  }
+
+  const selectSiteTab = (tab: SiteTab) => {
+    setSiteTab(tab)
+    setSitesFocus(tab === "6" ? "comparable" : "site")
+  }
   const [siteLayers, setSiteLayers] = useState<Record<LayerKey, boolean>>({
     income: false,
     labels: false,
@@ -1709,10 +1739,12 @@ export default function App() {
   const pickSite = (site: Site) => {
     setSelectedSiteIds([site.id])
     setSitesFocus("site")
+    setSiteTab("1")
   }
   const pickLease = (index: number) => {
     setSelectedLeaseIndexes([index])
     setSitesFocus("comparable")
+    setSiteTab("6")
   }
   const pickHood = (n: Neighborhood) => {
     setSelectedHoodNames([n.name])
@@ -1763,12 +1795,14 @@ export default function App() {
       const id = a.getAttribute("href")?.slice(1)
       if (!id) return
       e.preventDefault()
-      if (id === "chart-1") {
+      if (id === "chart-1" || id === "chart-2") {
         setSitesFocus("site")
+        setSiteTab(id.slice(-1) as SiteTab)
         setSelectedSiteIds([...ALL_SITE_IDS])
         scrollToId("sites-detail")
       } else if (id === "chart-6") {
         setSitesFocus("comparable")
+        setSiteTab("6")
         setSelectedLeaseIndexes([...ALL_LEASE_INDEXES])
         scrollToId("sites-detail")
       } else if (id === "chart-3" || id === "chart-4" || id === "chart-5") {
@@ -1801,7 +1835,7 @@ export default function App() {
             </div>
             <SitesCompsSelect
               focus={sitesFocus}
-              setFocus={setSitesFocus}
+              setFocus={setSitesFocusAndTab}
               selectedSiteIds={selectedSiteIds}
               setSelectedSiteIds={setSelectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
@@ -1901,7 +1935,9 @@ export default function App() {
           <div className="charts-below">
             <SitesDetailPanel
               focus={sitesFocus}
-              setFocus={setSitesFocus}
+              setFocus={setSitesFocusAndTab}
+              siteTab={siteTab}
+              setSiteTab={selectSiteTab}
               selectedSiteIds={selectedSiteIds}
               setSelectedSiteIds={setSelectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
@@ -1948,40 +1984,48 @@ export default function App() {
                   <input
                     type="checkbox"
                     checked={hoodLayers[key]}
-                    onChange={() =>
-                      setHoodLayers((prev) => ({ ...prev, [key]: !prev[key] }))
-                    }
+                    onChange={() => {
+                      setHoodLayers((prev) => {
+                        const next = { ...prev, [key]: !prev[key] }
+                        if (key === "income" && !next.income) {
+                          setSelectedIncomeBand(null)
+                        }
+                        return next
+                      })
+                    }}
                   />
                   {label}
                 </label>
               ))}
             </div>
-            <div
-              className="map-legend-keys inline income-key"
-              role="group"
-              aria-label="Median Household Income Shading"
-            >
-              <span className="key-label">Median Household Income</span>
-              {INCOME_STOPS.map((stop) => (
-                <button
-                  key={stop.label}
-                  type="button"
-                  className={`income-swatch button${
-                    selectedIncomeBand === stop.label ? " active" : ""
-                  }${
-                    selectedIncomeBand && selectedIncomeBand !== stop.label
-                      ? " dimmed"
-                      : ""
-                  }`}
-                  aria-pressed={selectedIncomeBand === stop.label}
-                  title={`Highlight ${stop.label} neighborhoods`}
-                  onClick={() => pickIncomeBand(stop.label)}
-                >
-                  <i style={{ background: stop.color }} />
-                  {stop.label}
-                </button>
-              ))}
-            </div>
+            {hoodLayers.income ? (
+              <div
+                className="map-legend-keys inline income-key"
+                role="group"
+                aria-label="Median HH Income"
+              >
+                <span className="key-label">Median HH Income</span>
+                {INCOME_STOPS.map((stop) => (
+                  <button
+                    key={stop.label}
+                    type="button"
+                    className={`income-swatch button${
+                      selectedIncomeBand === stop.label ? " active" : ""
+                    }${
+                      selectedIncomeBand && selectedIncomeBand !== stop.label
+                        ? " dimmed"
+                        : ""
+                    }`}
+                    aria-pressed={selectedIncomeBand === stop.label}
+                    title={`Highlight ${stop.label} neighborhoods`}
+                    onClick={() => pickIncomeBand(stop.label)}
+                  >
+                    <i style={{ background: stop.color }} />
+                    {stop.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="map-stage single">
@@ -2021,7 +2065,7 @@ export default function App() {
             <p>
               Full citations:{" "}
               <a href="#sources" style={{ color: "#9bb6cb" }}>
-                Sources &amp; Footnotes
+                References &amp; Sources
               </a>
               .
             </p>

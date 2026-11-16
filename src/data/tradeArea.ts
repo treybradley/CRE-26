@@ -78,16 +78,15 @@ export const INCOME_STOPS = [
   { max: 150_000, color: "#9bb6cb", label: "$120–150K" },
   { max: 180_000, color: "#5f87a8", label: "$150–180K" },
   { max: 210_000, color: "#2f5f84", label: "$180–210K" },
-  { max: Infinity, color: "#002349", label: "$250K+" },
+  { max: Infinity, color: "#002349", label: "$210K+" },
 ] as const
 
 export const NAVY = "#002349"
 export const BLUE = "#1a3d66"
 
+/** Map fill from Chart 4 median HH income (medianIncomeSort). */
 export function incomeFill(n: Neighborhood | undefined): string {
   if (!n?.medianIncomeSort) return "#c5d3de"
-  // Chart 4 “$250K+” is the Census top-code minimum — always darkest.
-  if (n.medianHhIncome.includes("250K")) return "#002349"
   for (const stop of INCOME_STOPS) {
     if (n.medianIncomeSort <= stop.max) return stop.color
   }
