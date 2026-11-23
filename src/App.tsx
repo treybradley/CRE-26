@@ -36,7 +36,7 @@ import {
 const SITE_TITLE = "Manhattan F&B Market Study"
 const GEOJSON_URL = `${import.meta.env.BASE_URL}data/Tracts_26_Neighborhoods.geojson`
 const MILES_TO_METERS = 1609.344
-const ANALYSIS_PDF = `${import.meta.env.BASE_URL}Manhattan_Trade_Area_Analysis_11-16-2026.pdf`
+const ANALYSIS_PDF = `${import.meta.env.BASE_URL}Manhattan_Trade_Area_Analysis_11-23-2026.pdf`
 
 /** Quiet OSM-based tiles: street grid + names, no landuse orange/ferry dashes. */
 const CARTO_KEY = import.meta.env.VITE_CARTO_API_KEY ?? ""
@@ -695,7 +695,7 @@ const CHART_NOTES: Record<ChartId, readonly string[]> = {
     "Employees and Student Enrollment use the 0.25- and 0.5-mile straight-line radii shown on the map.",
   ],
   "2": [
-    "Ground-floor retail rental ranges are still being verified and will be added when sources are confirmed.",
+    "Chart 2 is under construction. The rental ranges are estimates and are still being verified. They will be added here once confirmed. The current estimates are in the Analysis PDF.",
   ],
   "3": [
     tradeArea.clickSourceLine,
@@ -750,7 +750,9 @@ function NoteTip({
         <div className="note-tip-popover" role="dialog" aria-label={`${label} notes`}>
           <ul>
             {notes.map((note) => (
-              <li key={note}>{note}</li>
+              <li key={note}>
+                <NoteLine text={note} />
+              </li>
             ))}
           </ul>
           <a href="#sources" onClick={() => setOpen(false)}>
@@ -824,6 +826,48 @@ function RentCell({ value }: { value: string }) {
       {base}
       {mark ? <sup className="rent-mark">{mark}</sup> : null}
     </>
+  )
+}
+
+/** Render leading † ‡ § markers as superscript in notes / footnotes. */
+function NoteLine({ text }: { text: string }) {
+  const m = text.match(/^([†‡§*]+)(\s*)(.*)$/)
+  if (!m) return <>{text}</>
+  return (
+    <>
+      <sup className="rent-mark">{m[1]}</sup>
+      {m[2]}
+      {m[3]}
+    </>
+  )
+}
+
+function chart3FootnoteLine(hoods: Neighborhood[]) {
+  const parts: ReactNode[] = []
+  if (hoods.some((h) => h.askingRent.includes("†"))) {
+    parts.push(
+      <span key="dagger">
+        <sup className="rent-mark">†</sup> NNN rent.
+      </span>,
+    )
+  }
+  if (hoods.some((h) => h.askingRent.includes("‡"))) {
+    parts.push(
+      <span key="double">
+        <sup className="rent-mark">‡</sup> Single quote.
+      </span>,
+    )
+  }
+  if (!parts.length) return null
+  return (
+    <p className="table-footnote-line">
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 ? " " : null}
+          {part}
+        </span>
+      ))}
+    </p>
   )
 }
 
@@ -1268,8 +1312,9 @@ function SitesDetailPanel({
           <div id="chart-2" className="held">
             <ChartHeading chart="2" />
             <div className="held-box">
-              The rental range data is still being verified and will be added
-              here.
+              Chart 2 is under construction. The rental ranges are estimates and
+              are still being verified. They will be added here once confirmed.
+              The current estimates are in the Analysis PDF.
             </div>
           </div>
         ) : null}
@@ -1473,9 +1518,7 @@ function NeighborhoodDetailPanel({
                     ))}
                   </tbody>
                 </DataTable>
-                <p className="table-footnote-line">
-                  † NNN rent. ‡ Single quote.
-                </p>
+                {chart3FootnoteLine(hoods)}
               </>
             )}
           </div>

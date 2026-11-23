@@ -1,5 +1,5 @@
 {
-  "updated": "November 16, 2026",
+  "updated": "November 23, 2026",
   "sites": [
     {
       "id": "university",
@@ -82,7 +82,7 @@
       "hhOver200k": "46.6%",
       "population": "4,875",
       "employees": "51,664",
-      "askingRent": "$93‡",
+      "askingRent": "$83",
       "medianHhIncome": "$183K",
       "averageHhIncome": "$321K",
       "bachelorsOrHigher": "79.9%",
@@ -123,7 +123,7 @@
       "hhOver200k": "31.6%",
       "population": "24,439",
       "employees": "39,710",
-      "askingRent": "$101",
+      "askingRent": "$103",
       "medianHhIncome": "$118K",
       "averageHhIncome": "$214K",
       "bachelorsOrHigher": "72.3%",
@@ -208,7 +208,7 @@
       "hhOver200k": "43.3%",
       "population": "12,261",
       "employees": "72,675",
-      "askingRent": "$115",
+      "askingRent": "$134",
       "medianHhIncome": "$168K",
       "averageHhIncome": "$304K",
       "bachelorsOrHigher": "80.5%",
@@ -330,7 +330,7 @@
       "hhOver200k": "64.5%",
       "population": "13,392",
       "employees": "54,838",
-      "askingRent": "$91",
+      "askingRent": "$92",
       "medianHhIncome": "$250K+",
       "averageHhIncome": "$512K",
       "bachelorsOrHigher": "90.5%",
@@ -371,7 +371,7 @@
       "hhOver200k": "49.0%",
       "population": "2,910",
       "employees": "28,029",
-      "askingRent": "$91",
+      "askingRent": "$92",
       "medianHhIncome": "$189K",
       "averageHhIncome": "$355K",
       "bachelorsOrHigher": "69.5%",
@@ -741,7 +741,7 @@
       "hhOver200k": "45.1%",
       "population": "986",
       "employees": "17,655",
-      "askingRent": "N/A",
+      "askingRent": "$140‡",
       "medianHhIncome": "$167K",
       "averageHhIncome": "$315K",
       "bachelorsOrHigher": "85.1%",
@@ -1117,7 +1117,7 @@
       "hhOver200k": "44.1%",
       "population": "30,520",
       "employees": "9,737",
-      "askingRent": "N/A",
+      "askingRent": "$57‡",
       "medianHhIncome": "$168K",
       "averageHhIncome": "$306K",
       "bachelorsOrHigher": "81.5%",
@@ -1201,11 +1201,11 @@
     },
     {
       "no": "7",
-      "source": "U.S. Census Bureau, LEHD Origin-Destination Employment Statistics (LODES), Version 8, Workplace. Area Characteristics (WAC), New York, Primary Jobs, 2024, tabulated by census tract. Retrieved November 7, 2026 from lehd.ces.census.gov/data/lodes/LODES8/ny/wac/."
+      "source": "U.S. Census Bureau, LEHD Origin-Destination Employment Statistics (LODES), Version 8, Workplace Area Characteristics (WAC), New York, Primary Jobs, 2024, tabulated by census tract. Retrieved November 7, 2026 from lehd.ces.census.gov/data/lodes/LODES8/ny/wac/."
     },
     {
       "no": "8",
-      "source": "Asking rents: Sotheby's International Realty retail space tracker, November 2026, compiled from asking rents quoted by landlords' listing agents for available ground-floor and lower-level retail spaces. Blended figures divide total annual asking rent by total square feet quoted. Neighborhoods are as defined in the tracker."
+      "source": "Asking rents: Sotheby's International Realty retail space tracker, November 2026 (final version dated November 19, 2026), compiled from asking rents quoted by landlords' listing agents for available ground-floor and lower-level retail spaces. Blended figures divide total annual asking rent by total square feet quoted. Neighborhoods are as defined in the tracker."
     },
     {
       "no": "9",
@@ -1227,7 +1227,7 @@
   "chart3Footnotes": [
     {
       "marker": "Blended",
-      "text": "Blended asking rent: total annual asking rent divided by total square feet quoted (ground floor plus lower and other levels). Asking rents were quoted by landlords' listing agents in November 2026."
+      "text": "Blended asking rent: total annual asking rent divided by total square feet quoted (ground floor plus lower and other levels). Where a space has no basement, the blended rent equals the ground-floor rent. Asking rents were quoted by landlords' listing agents in November 2026 and are as of November 19, 2026."
     },
     {
       "marker": "†",
