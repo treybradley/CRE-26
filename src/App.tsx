@@ -319,7 +319,7 @@ function TradeMap({
     const map = L.map(containerRef.current, {
       scrollWheelZoom: true,
       zoomControl: true,
-    }).setView([40.732, -73.992], mode === "sites" ? 13 : 15.25)
+    }).setView([40.732, -73.992], mode === "sites" ? 13 : 16.25)
 
     L.tileLayer(BASEMAP_URL, {
       attribution: BASEMAP_ATTR,
@@ -358,7 +358,7 @@ function TradeMap({
         if (modeRef.current === "neighborhoods") {
           map.fitBounds(tracts.getBounds(), {
             padding: [56, 56],
-            maxZoom: 15.5,
+            maxZoom: 16.5,
           })
         }
 
