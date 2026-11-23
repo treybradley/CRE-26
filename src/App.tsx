@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import * as L from "leaflet"
 import {
+  ChevronDown,
+  ChevronUp,
   FileText,
   Home,
   Info,
@@ -699,9 +701,6 @@ const CHART_NOTES: Record<ChartId, readonly string[]> = {
   ],
   "3": [
     tradeArea.clickSourceLine,
-    ...tradeArea.chart3Footnotes.map((fn) =>
-      fn.marker.length <= 2 ? `${fn.marker} ${fn.text}` : `${fn.marker}: ${fn.text}`,
-    ),
     "Full comparison tables are in the analysis PDF.",
   ],
   "4": [
@@ -721,22 +720,34 @@ const CHART_NOTES: Record<ChartId, readonly string[]> = {
   ],
 }
 
+const CHART3_FOOTNOTE_NOTES = tradeArea.chart3Footnotes.map((fn) =>
+  fn.marker.length <= 2 ? `${fn.marker} ${fn.text}` : `${fn.marker}: ${fn.text}`,
+)
+
 function NoteTip({
   notes,
   label,
+  variant = "default",
 }: {
   notes: readonly string[]
   label: string
+  variant?: "default" | "chart3"
 }) {
   const [open, setOpen] = useState(false)
-  const rootRef = useMenuDismiss(open, () => setOpen(false))
+  const close = () => setOpen(false)
+  const rootRef = useMenuDismiss(open, close)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close()
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [open])
 
   return (
-    <span
-      className="note-tip"
-      ref={rootRef}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <span className="note-tip" ref={rootRef}>
       <button
         type="button"
         className="note-tip-btn"
@@ -747,15 +758,51 @@ function NoteTip({
         <Info size={14} strokeWidth={2.25} />
       </button>
       {open ? (
-        <div className="note-tip-popover" role="dialog" aria-label={`${label} notes`}>
-          <ul>
-            {notes.map((note) => (
-              <li key={note}>
-                <NoteLine text={note} />
-              </li>
-            ))}
-          </ul>
-          <a href="#sources" onClick={() => setOpen(false)}>
+        <div
+          className={`note-tip-popover${variant === "chart3" ? " chart3" : ""}`}
+          role="dialog"
+          aria-label={`${label} notes`}
+        >
+          <div className="note-tip-head">
+            <span className="note-tip-title">Notes</span>
+            <button
+              type="button"
+              className="note-tip-close"
+              aria-label="Close notes"
+              onClick={close}
+            >
+              <X size={14} strokeWidth={2.25} />
+            </button>
+          </div>
+          {variant === "chart3" ? (
+            <>
+              <p className="note-section-label">Reading notes</p>
+              <ul>
+                {notes.map((note) => (
+                  <li key={note}>
+                    <NoteLine text={note} />
+                  </li>
+                ))}
+              </ul>
+              <p className="note-section-label">Asking-rent footnotes</p>
+              <ul>
+                {CHART3_FOOTNOTE_NOTES.map((note) => (
+                  <li key={note}>
+                    <NoteLine text={note} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <ul>
+              {notes.map((note) => (
+                <li key={note}>
+                  <NoteLine text={note} />
+                </li>
+              ))}
+            </ul>
+          )}
+          <a href="#sources" onClick={close}>
             References &amp; Sources
           </a>
         </div>
@@ -768,10 +815,12 @@ function ChartHeading({
   chart,
   extraNotes,
   dek,
+  actions,
 }: {
   chart: ChartId
   extraNotes?: readonly string[]
   dek?: string
+  actions?: ReactNode
 }) {
   const notes = extraNotes?.length
     ? [...CHART_NOTES[chart], ...extraNotes]
@@ -779,12 +828,146 @@ function ChartHeading({
   const title = chartLabel(chart)
   return (
     <div className="chart-heading-block">
-      <div className="chart-heading">
-        <h4>{title}</h4>
-        <NoteTip notes={notes} label={title} />
+      <div className={`chart-heading${actions ? " with-actions" : ""}`}>
+        <div className="chart-heading-title">
+          <h4>{title}</h4>
+          <NoteTip
+            notes={notes}
+            label={title}
+            variant={chart === "3" ? "chart3" : "default"}
+          />
+        </div>
+        {actions}
       </div>
       {dek ? <p className="chart-dek">{dek}</p> : null}
     </div>
+  )
+}
+
+type SortDir = "asc" | "desc"
+type SortState = { key: string; dir: SortDir } | null
+
+function isNaDisplay(value: string): boolean {
+  const t = value.trim()
+  return !t || t === "N/A" || t.startsWith("N/A")
+}
+
+/** Numeric sort key; N/A sorts last regardless of direction. */
+function sortableNumber(value: string): number | null {
+  if (isNaDisplay(value)) return null
+  return parseCount(value.replace(/[†‡§*]/g, ""))
+}
+
+function compareNullable(
+  a: number | null,
+  b: number | null,
+  dir: SortDir,
+): number {
+  if (a === null && b === null) return 0
+  if (a === null) return 1
+  if (b === null) return -1
+  return dir === "asc" ? a - b : b - a
+}
+
+function compareText(a: string, b: string, dir: SortDir): number {
+  const aNa = isNaDisplay(a)
+  const bNa = isNaDisplay(b)
+  if (aNa && bNa) return 0
+  if (aNa) return 1
+  if (bNa) return -1
+  const cmp = a.localeCompare(b, undefined, { sensitivity: "base" })
+  return dir === "asc" ? cmp : -cmp
+}
+
+function sortNeighborhoods(
+  rows: Neighborhood[],
+  sort: SortState,
+  getValue: (row: Neighborhood, key: string) => string,
+  kind: "num" | "text" = "num",
+): Neighborhood[] {
+  if (!sort) return rows
+  const sorted = [...rows]
+  sorted.sort((a, b) => {
+    const av = getValue(a, sort.key)
+    const bv = getValue(b, sort.key)
+    if (kind === "text") return compareText(av, bv, sort.dir)
+    return compareNullable(sortableNumber(av), sortableNumber(bv), sort.dir)
+  })
+  return sorted
+}
+
+function SortableTh({
+  label,
+  sortKey,
+  sort,
+  onSort,
+  className,
+  sticky,
+  rowSpan,
+}: {
+  label: string
+  sortKey: string
+  sort: SortState
+  onSort: (key: string) => void
+  className?: string
+  sticky?: boolean
+  rowSpan?: number
+}) {
+  const active = sort?.key === sortKey
+  return (
+    <th
+      rowSpan={rowSpan}
+      className={`${sticky ? "sticky-col " : ""}${className ?? ""}`.trim()}
+    >
+      <button
+        type="button"
+        className={`sort-th-btn${active ? " sorted" : ""}`}
+        onClick={() => onSort(sortKey)}
+        aria-label={`Sort by ${label}`}
+      >
+        <span>{label}</span>
+        <span className="sort-arrows" aria-hidden="true">
+          <ChevronUp
+            size={11}
+            strokeWidth={2.5}
+            className={active && sort?.dir === "asc" ? "on" : ""}
+          />
+          <ChevronDown
+            size={11}
+            strokeWidth={2.5}
+            className={active && sort?.dir === "desc" ? "on" : ""}
+          />
+        </span>
+      </button>
+    </th>
+  )
+}
+
+function useColumnSort() {
+  const [sort, setSort] = useState<SortState>(null)
+  const onSort = (key: string) => {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: "asc" }
+      if (prev.dir === "asc") return { key, dir: "desc" }
+      return null
+    })
+  }
+  const reset = () => setSort(null)
+  return { sort, onSort, reset }
+}
+
+function ResetOrderButton({
+  active,
+  onReset,
+}: {
+  active: boolean
+  onReset: () => void
+}) {
+  if (!active) return null
+  return (
+    <button type="button" className="clear-link reset-order" onClick={onReset}>
+      Reset order
+    </button>
   )
 }
 
@@ -1136,6 +1319,8 @@ function SitesDetailPanel({
   setSelectedSiteIds,
   selectedLeaseIndexes,
   setSelectedLeaseIndexes,
+  showLeasePins,
+  onToggleLeasePins,
   onPickSite,
   onPickLease,
 }: {
@@ -1147,6 +1332,8 @@ function SitesDetailPanel({
   setSelectedSiteIds: (ids: string[]) => void
   selectedLeaseIndexes: number[]
   setSelectedLeaseIndexes: (indexes: number[]) => void
+  showLeasePins: boolean
+  onToggleLeasePins: () => void
   onPickSite: (site: Site) => void
   onPickLease: (index: number) => void
 }) {
@@ -1321,7 +1508,19 @@ function SitesDetailPanel({
 
         {siteTab === "6" ? (
           <div id="chart-6">
-            <ChartHeading chart="6" />
+            <ChartHeading
+              chart="6"
+              actions={
+                <label className="chart-heading-action">
+                  <input
+                    type="checkbox"
+                    checked={showLeasePins}
+                    onChange={onToggleLeasePins}
+                  />
+                  Display locations on map
+                </label>
+              }
+            />
             <DataTable>
               <thead>
                 <tr>
@@ -1369,6 +1568,57 @@ const TRAFFIC_WINDOWS = [
   { key: "5-6 PM", label: "5–6 PM" },
 ] as const
 
+function chart3Value(hood: Neighborhood, key: string): string {
+  switch (key) {
+    case "name":
+      return hood.name
+    case "population":
+      return hood.population
+    case "employees":
+      return hood.employees
+    case "kids":
+      return hood.householdsWithKids
+    case "hh150":
+      return hood.hhOver150k
+    case "hh200":
+      return hood.hhOver200k
+    case "rent":
+      return hood.askingRent
+    default:
+      return ""
+  }
+}
+
+function chart4Value(hood: Neighborhood, key: string): string {
+  switch (key) {
+    case "name":
+      return hood.name
+    case "median":
+      return hood.medianHhIncome
+    case "average":
+      return hood.averageHhIncome
+    case "bachelors":
+      return hood.bachelorsOrHigher
+    case "sectors":
+      return hood.topJobSectors
+    case "anchors":
+      return hood.anchorCompanies
+    default:
+      return ""
+  }
+}
+
+function chart5Value(hood: Neighborhood, key: string): string {
+  if (key === "name") return hood.name
+  if (key.startsWith("wd:")) {
+    return hood.footTraffic.weekday[key.slice(3)] ?? "N/A"
+  }
+  if (key.startsWith("we:")) {
+    return hood.footTraffic.weekend[key.slice(3)] ?? "N/A"
+  }
+  return ""
+}
+
 function NeighborhoodDetailPanel({
   tab,
   setTab,
@@ -1385,6 +1635,25 @@ function NeighborhoodDetailPanel({
   )
   const single = hoods.length === 1 ? hoods[0]! : null
   const pick = (name: string) => setSelectedNames([name])
+  const sort3 = useColumnSort()
+  const sort4 = useColumnSort()
+  const sort5 = useColumnSort()
+
+  const chart3Kind =
+    sort3.sort?.key === "name" ? ("text" as const) : ("num" as const)
+  const chart4Kind =
+    sort4.sort?.key === "name" ||
+    sort4.sort?.key === "sectors" ||
+    sort4.sort?.key === "anchors"
+      ? ("text" as const)
+      : ("num" as const)
+  const chart5Kind =
+    sort5.sort?.key === "name" ? ("text" as const) : ("num" as const)
+
+  const rows3 = sortNeighborhoods(hoods, sort3.sort, chart3Value, chart3Kind)
+  const rows4 = sortNeighborhoods(hoods, sort4.sort, chart4Value, chart4Kind)
+  const rows5 = sortNeighborhoods(hoods, sort5.sort, chart5Value, chart5Kind)
+
   const ageData = single
     ? Object.entries(single.age).map(([band, value]) => ({
         band,
@@ -1466,7 +1735,15 @@ function NeighborhoodDetailPanel({
       <div className="detail-panel-body">
         {tab === "3" && (
           <div id="chart-3">
-            <ChartHeading chart="3" />
+            <ChartHeading
+              chart="3"
+              actions={
+                <ResetOrderButton
+                  active={!!sort3.sort}
+                  onReset={sort3.reset}
+                />
+              }
+            />
             {single ? (
               <>
                 <p className="chart-dek">Age Mix by Share of Population (Estimate)</p>
@@ -1493,17 +1770,53 @@ function NeighborhoodDetailPanel({
                 <DataTable>
                   <thead>
                     <tr>
-                      <th className="sticky-col">Neighborhood</th>
-                      <th>Population</th>
-                      <th>Employees</th>
-                      <th>W/ Kids</th>
-                      <th>HH &gt;$150K</th>
-                      <th>HH &gt;$200K</th>
-                      <th>Asking Rent (Blended $/SF)</th>
+                      <SortableTh
+                        sticky
+                        label="Neighborhood"
+                        sortKey="name"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
+                      <SortableTh
+                        label="Population"
+                        sortKey="population"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
+                      <SortableTh
+                        label="Employees"
+                        sortKey="employees"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
+                      <SortableTh
+                        label="W/ Kids"
+                        sortKey="kids"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
+                      <SortableTh
+                        label="HH >$150K"
+                        sortKey="hh150"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
+                      <SortableTh
+                        label="HH >$200K"
+                        sortKey="hh200"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
+                      <SortableTh
+                        label="Asking Rent (Blended $/SF)"
+                        sortKey="rent"
+                        sort={sort3.sort}
+                        onSort={sort3.onSort}
+                      />
                     </tr>
                   </thead>
                   <tbody>
-                    {hoods.map((hood) => (
+                    {rows3.map((hood) => (
                       <tr key={hood.name}>
                         <HoodNameCell hood={hood} onPick={pick} />
                         <td>{hood.population}</td>
@@ -1518,14 +1831,22 @@ function NeighborhoodDetailPanel({
                     ))}
                   </tbody>
                 </DataTable>
-                {chart3FootnoteLine(hoods)}
+                {chart3FootnoteLine(rows3)}
               </>
             )}
           </div>
         )}
         {tab === "4" && (
           <div id="chart-4">
-            <ChartHeading chart="4" />
+            <ChartHeading
+              chart="4"
+              actions={
+                <ResetOrderButton
+                  active={!!sort4.sort}
+                  onReset={sort4.reset}
+                />
+              }
+            />
             {single ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={incomeData}>
@@ -1551,16 +1872,49 @@ function NeighborhoodDetailPanel({
               <DataTable>
                 <thead>
                   <tr>
-                    <th className="sticky-col">Neighborhood</th>
-                    <th>Median HH Income</th>
-                    <th>Average HH Income</th>
-                    <th>Bachelor's Degree or Higher</th>
-                    <th className="sector-col">Top Three Job Sectors</th>
-                    <th className="anchor-col">Anchor Companies</th>
+                    <SortableTh
+                      sticky
+                      label="Neighborhood"
+                      sortKey="name"
+                      sort={sort4.sort}
+                      onSort={sort4.onSort}
+                    />
+                    <SortableTh
+                      label="Median HH Income"
+                      sortKey="median"
+                      sort={sort4.sort}
+                      onSort={sort4.onSort}
+                    />
+                    <SortableTh
+                      label="Average HH Income"
+                      sortKey="average"
+                      sort={sort4.sort}
+                      onSort={sort4.onSort}
+                    />
+                    <SortableTh
+                      label="Bachelor's Degree or Higher"
+                      sortKey="bachelors"
+                      sort={sort4.sort}
+                      onSort={sort4.onSort}
+                    />
+                    <SortableTh
+                      label="Top Three Job Sectors"
+                      sortKey="sectors"
+                      sort={sort4.sort}
+                      onSort={sort4.onSort}
+                      className="sector-col"
+                    />
+                    <SortableTh
+                      label="Anchor Companies"
+                      sortKey="anchors"
+                      sort={sort4.sort}
+                      onSort={sort4.onSort}
+                      className="anchor-col"
+                    />
                   </tr>
                 </thead>
                 <tbody>
-                  {hoods.map((hood) => (
+                  {rows4.map((hood) => (
                     <tr key={hood.name}>
                       <HoodNameCell hood={hood} onPick={pick} />
                       <td>{hood.medianHhIncome}</td>
@@ -1589,6 +1943,12 @@ function NeighborhoodDetailPanel({
                   ? [tradeArea.gramercyNote]
                   : undefined
               }
+              actions={
+                <ResetOrderButton
+                  active={!!sort5.sort}
+                  onReset={sort5.reset}
+                />
+              }
             />
             {single ? (
               <ResponsiveContainer width="100%" height={220}>
@@ -1609,9 +1969,14 @@ function NeighborhoodDetailPanel({
               <DataTable>
                 <thead>
                   <tr>
-                    <th className="sticky-col" rowSpan={2}>
-                      Neighborhood
-                    </th>
+                    <SortableTh
+                      sticky
+                      rowSpan={2}
+                      label="Neighborhood"
+                      sortKey="name"
+                      sort={sort5.sort}
+                      onSort={sort5.onSort}
+                    />
                     <th className="group-head" colSpan={3}>
                       Weekdays
                     </th>
@@ -1620,15 +1985,30 @@ function NeighborhoodDetailPanel({
                     </th>
                   </tr>
                   <tr>
-                    {[...TRAFFIC_WINDOWS, ...TRAFFIC_WINDOWS].map((w, i) => (
-                      <th key={`${w.key}-${i}`} className="sub-head">
-                        {w.label}
-                      </th>
+                    {TRAFFIC_WINDOWS.map((w) => (
+                      <SortableTh
+                        key={`wd-${w.key}`}
+                        label={w.label}
+                        sortKey={`wd:${w.key}`}
+                        sort={sort5.sort}
+                        onSort={sort5.onSort}
+                        className="sub-head"
+                      />
+                    ))}
+                    {TRAFFIC_WINDOWS.map((w) => (
+                      <SortableTh
+                        key={`we-${w.key}`}
+                        label={w.label}
+                        sortKey={`we:${w.key}`}
+                        sort={sort5.sort}
+                        onSort={sort5.onSort}
+                        className="sub-head"
+                      />
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {hoods.map((hood) => (
+                  {rows5.map((hood) => (
                     <tr key={hood.name}>
                       <HoodNameCell hood={hood} onPick={pick} />
                       {TRAFFIC_WINDOWS.map((w) => (
@@ -1990,6 +2370,10 @@ export default function App() {
               setSelectedSiteIds={setSelectedSiteIds}
               selectedLeaseIndexes={selectedLeaseIndexes}
               setSelectedLeaseIndexes={setSelectedLeaseIndexes}
+              showLeasePins={siteLayers.leases}
+              onToggleLeasePins={() =>
+                setSiteLayers((prev) => ({ ...prev, leases: !prev.leases }))
+              }
               onPickSite={pickSite}
               onPickLease={pickLease}
             />
