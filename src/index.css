@@ -1103,7 +1103,7 @@
 .sort-th-btn {
   display: inline-flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: 5px;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -1117,7 +1117,10 @@
   cursor: pointer;
 }
 
-.sort-th-btn:hover,
+.sort-th-btn:hover {
+  color: var(--navy);
+}
+
 .sort-th-btn.sorted {
   color: var(--navy);
 }
@@ -1129,19 +1132,26 @@
   justify-content: center;
   gap: 0;
   flex-shrink: 0;
-  opacity: 0.35;
   line-height: 0;
-}
-
-.sort-th-btn:hover .sort-arrows,
-.sort-th-btn.sorted .sort-arrows {
-  opacity: 0.85;
 }
 
 .sort-arrows svg {
   display: block;
   margin: -2px 0;
-  color: inherit;
+  color: #9bb6cb;
+  opacity: 0.55;
+  transition: color 0.12s ease, opacity 0.12s ease;
+}
+
+.sort-th-btn:hover .sort-arrows svg {
+  opacity: 0.75;
+}
+
+/* Active column: mute the unused chevron, punch the sorted direction. */
+.sort-arrows[data-dir="asc"] svg:not(.on),
+.sort-arrows[data-dir="desc"] svg:not(.on) {
+  opacity: 0.22;
+  color: #9bb6cb;
 }
 
 .sort-arrows svg.on {

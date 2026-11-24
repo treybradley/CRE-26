@@ -914,28 +914,38 @@ function SortableTh({
   rowSpan?: number
 }) {
   const active = sort?.key === sortKey
+  const dir = active ? sort?.dir : undefined
+  const ariaSort =
+    dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none"
   return (
     <th
       rowSpan={rowSpan}
+      aria-sort={ariaSort}
       className={`${sticky ? "sticky-col " : ""}${className ?? ""}`.trim()}
     >
       <button
         type="button"
-        className={`sort-th-btn${active ? " sorted" : ""}`}
+        className={`sort-th-btn${dir ? ` sorted ${dir}` : ""}`}
         onClick={() => onSort(sortKey)}
-        aria-label={`Sort by ${label}`}
+        aria-label={
+          dir === "asc"
+            ? `${label}, sorted ascending`
+            : dir === "desc"
+              ? `${label}, sorted descending`
+              : `Sort by ${label}`
+        }
       >
         <span>{label}</span>
-        <span className="sort-arrows" aria-hidden="true">
+        <span className="sort-arrows" data-dir={dir ?? "none"} aria-hidden="true">
           <ChevronUp
-            size={11}
-            strokeWidth={2.5}
-            className={active && sort?.dir === "asc" ? "on" : ""}
+            size={12}
+            strokeWidth={dir === "asc" ? 3 : 2.25}
+            className={dir === "asc" ? "on" : ""}
           />
           <ChevronDown
-            size={11}
-            strokeWidth={2.5}
-            className={active && sort?.dir === "desc" ? "on" : ""}
+            size={12}
+            strokeWidth={dir === "desc" ? 3 : 2.25}
+            className={dir === "desc" ? "on" : ""}
           />
         </span>
       </button>
