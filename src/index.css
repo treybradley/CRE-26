@@ -374,6 +374,8 @@
 }
 
 .view-header.with-filter {
+  position: relative;
+  z-index: 20;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(240px, 420px);
   gap: 16px 28px;
@@ -396,6 +398,7 @@
 
 .multi-select {
   position: relative;
+  z-index: 21;
   width: min(100%, 320px);
   justify-self: end;
 }
@@ -438,7 +441,7 @@
 
 .multi-select-menu {
   position: absolute;
-  z-index: 30;
+  z-index: 40;
   top: calc(100% + 4px);
   left: 0;
   right: 0;
@@ -647,6 +650,8 @@
 }
 
 .map-stage {
+  position: relative;
+  z-index: 1;
   width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
