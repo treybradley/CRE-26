@@ -389,10 +389,10 @@
 .view-header-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 14px;
+  gap: 10px 12px;
   justify-content: flex-end;
   align-items: start;
-  max-width: min(100%, 560px);
+  max-width: min(100%, 420px);
 }
 
 .view-header h2 {
@@ -420,13 +420,16 @@
 
 .view-header-filters .multi-select {
   justify-self: stretch;
-  flex: 1 1 200px;
+  flex: 1 1 150px;
+  width: clamp(150px, 18vw, 190px);
+  min-width: 150px;
+  max-width: 190px;
 }
 
 .shade-select {
-  width: clamp(180px, 24vw, 260px);
-  min-width: 180px;
-  max-width: 260px;
+  width: clamp(150px, 18vw, 190px);
+  min-width: 150px;
+  max-width: 190px;
 }
 
 .multi-select-label {
@@ -456,7 +459,15 @@
   font-weight: 700;
 }
 
+.multi-select-trigger > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .multi-select-caret {
+  flex-shrink: 0;
   color: var(--muted);
   font-size: 11px;
 }
