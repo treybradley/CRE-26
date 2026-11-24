@@ -1609,10 +1609,6 @@ function chart4Value(hood: Neighborhood, key: string): string {
       return hood.averageHhIncome
     case "bachelors":
       return hood.bachelorsOrHigher
-    case "sectors":
-      return hood.topJobSectors
-    case "anchors":
-      return hood.anchorCompanies
     default:
       return ""
   }
@@ -1652,11 +1648,7 @@ function NeighborhoodDetailPanel({
   const chart3Kind =
     sort3.sort?.key === "name" ? ("text" as const) : ("num" as const)
   const chart4Kind =
-    sort4.sort?.key === "name" ||
-    sort4.sort?.key === "sectors" ||
-    sort4.sort?.key === "anchors"
-      ? ("text" as const)
-      : ("num" as const)
+    sort4.sort?.key === "name" ? ("text" as const) : ("num" as const)
   const chart5Kind =
     sort5.sort?.key === "name" ? ("text" as const) : ("num" as const)
 
@@ -1907,20 +1899,8 @@ function NeighborhoodDetailPanel({
                       sort={sort4.sort}
                       onSort={sort4.onSort}
                     />
-                    <SortableTh
-                      label="Top Three Job Sectors"
-                      sortKey="sectors"
-                      sort={sort4.sort}
-                      onSort={sort4.onSort}
-                      className="sector-col"
-                    />
-                    <SortableTh
-                      label="Anchor Companies"
-                      sortKey="anchors"
-                      sort={sort4.sort}
-                      onSort={sort4.onSort}
-                      className="anchor-col"
-                    />
+                    <th className="sector-col">Top Three Job Sectors</th>
+                    <th className="anchor-col">Anchor Companies</th>
                   </tr>
                 </thead>
                 <tbody>
