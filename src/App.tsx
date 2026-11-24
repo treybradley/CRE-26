@@ -24,14 +24,20 @@ import {
 } from "recharts"
 import {
   BLUE,
-  INCOME_STOPS,
+  DEFAULT_SHADE_MODE,
+  FOOT_TRAFFIC_OPTIONS,
   NAVY,
-  incomeFill,
   neighborhoodByName,
   parseCount,
+  shadeBandLabel,
+  shadeFill,
+  shadeLegendTitle,
+  shadeModeLabel,
+  shadeStops,
   tradeArea,
   type Lease,
   type Neighborhood,
+  type ShadeMode,
   type Site,
 } from "./data/tradeArea"
 
@@ -238,12 +244,6 @@ const LEASE_PINS: { leaseIndex: number; position: LatLngTuple }[] = [
   { leaseIndex: 2, position: [40.7331, -73.9898] },
 ]
 
-function incomeBandLabel(n: Neighborhood | undefined): string | null {
-  if (!n?.medianIncomeSort) return null
-  const color = incomeFill(n)
-  return INCOME_STOPS.find((s) => s.color === color)?.label ?? null
-}
-
 const fmtNumber = (v: unknown) => Number(v).toLocaleString("en-US")
 
 function TradeMap({
@@ -251,7 +251,8 @@ function TradeMap({
   layers,
   focus,
   selectedNames,
-  selectedIncomeBand,
+  shadeMode = DEFAULT_SHADE_MODE,
+  selectedShadeBand,
   selectedSiteIds,
   selectedLeaseIndexes,
   onSelect,
@@ -262,7 +263,8 @@ function TradeMap({
   layers: Record<LayerKey, boolean>
   focus?: SitesFocus
   selectedNames: string[]
-  selectedIncomeBand?: string | null
+  shadeMode?: ShadeMode
+  selectedShadeBand?: string | null
   selectedSiteIds?: string[]
   selectedLeaseIndexes?: number[]
   onSelect: (n: Neighborhood) => void
@@ -279,11 +281,13 @@ function TradeMap({
   const firstFocusRef = useRef(true)
   const selectedRef = useRef(selectedNames)
   const layersRef = useRef(layers)
-  const bandRef = useRef(selectedIncomeBand ?? null)
+  const shadeModeRef = useRef(shadeMode)
+  const bandRef = useRef(selectedShadeBand ?? null)
   const modeRef = useRef(mode)
   selectedRef.current = selectedNames
   layersRef.current = layers
-  bandRef.current = selectedIncomeBand ?? null
+  shadeModeRef.current = shadeMode
+  bandRef.current = selectedShadeBand ?? null
   modeRef.current = mode
 
   const styleFor: L.StyleFunction = (feature) => {
@@ -291,26 +295,26 @@ function TradeMap({
     const n = neighborhoodByName[name]
     const hoodMode = modeRef.current === "neighborhoods"
     const names = selectedRef.current
-    const showIncome = hoodMode && layersRef.current.income
     const highlight =
       hoodMode && names.length > 0 && names.length < tradeArea.neighborhoods.length
     const selected = names.includes(name)
     const dimOthers = highlight && !selected
-    const band = showIncome ? bandRef.current : null
-    const bandMatch = !band || incomeBandLabel(n) === band
+    const band = hoodMode ? bandRef.current : null
+    const bandMatch =
+      !band || shadeBandLabel(n, shadeModeRef.current) === band
     let fillOpacity = dimOthers
       ? 0.12
-      : showIncome
+      : hoodMode
         ? 0.7
-        : hoodMode
-          ? 0.12
-          : 0.18
+        : 0.18
     if (band) fillOpacity = bandMatch ? 0.88 : 0.08
     return {
       color: highlight && selected ? NAVY : hoodMode ? "#ffffff" : "#9bb6cb",
       weight: highlight && selected ? 2.5 : hoodMode ? 0.6 : 1,
       opacity: 1,
-      fillColor: showIncome ? incomeFill(n) : "#d6e2ec",
+      fillColor: hoodMode
+        ? shadeFill(n, shadeModeRef.current)
+        : "#d6e2ec",
       fillOpacity,
     }
   }
@@ -321,7 +325,7 @@ function TradeMap({
     const map = L.map(containerRef.current, {
       scrollWheelZoom: true,
       zoomControl: true,
-    }).setView([40.732, -73.992], mode === "sites" ? 13 : 16.25)
+    }).setView([40.732, -73.992], mode === "sites" ? 13 : 17.25)
 
     L.tileLayer(BASEMAP_URL, {
       attribution: BASEMAP_ATTR,
@@ -360,7 +364,7 @@ function TradeMap({
         if (modeRef.current === "neighborhoods") {
           map.fitBounds(tracts.getBounds(), {
             padding: [56, 56],
-            maxZoom: 16.5,
+            maxZoom: 17.5,
           })
         }
 
@@ -407,7 +411,7 @@ function TradeMap({
   useEffect(() => {
     tractsLayerRef.current?.setStyle(styleFor)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layers.income, selectedNames, selectedIncomeBand, mode])
+  }, [selectedNames, selectedShadeBand, shadeMode, mode])
 
   useEffect(() => {
     const labels = labelsLayerRef.current
@@ -426,11 +430,17 @@ function TradeMap({
     if (!group) return
     group.clearLayers()
     if (mode !== "sites") return
+    const siteIds = selectedSiteIds ?? []
+    const highlightSites =
+      focus !== "comparable" &&
+      siteIds.length > 0 &&
+      siteIds.length < tradeArea.sites.length
     const radii: [number, boolean][] = [
       [0.25, layers.radius025],
       [0.5, layers.radius05],
     ]
     for (const site of tradeArea.sites) {
+      const dimmed = highlightSites && !siteIds.includes(site.id)
       for (const [miles, on] of radii) {
         if (!on) continue
         L.circle(site.position, {
@@ -439,11 +449,18 @@ function TradeMap({
           weight: miles === 0.25 ? 2 : 1.5,
           dashArray: miles === 0.5 ? "5 5" : undefined,
           fillColor: site.marker.color,
-          fillOpacity: 0.04,
+          fillOpacity: dimmed ? 0.015 : 0.04,
+          opacity: dimmed ? 0.28 : 1,
         }).addTo(group)
       }
     }
-  }, [layers.radius025, layers.radius05, mode])
+  }, [
+    layers.radius025,
+    layers.radius05,
+    mode,
+    focus,
+    selectedSiteIds,
+  ])
 
   useEffect(() => {
     const group = sitesLayerRef.current
@@ -458,15 +475,17 @@ function TradeMap({
       siteIds.length < tradeArea.sites.length
     for (const site of tradeArea.sites) {
       const selected = highlightSites && siteIds.includes(site.id)
+      const dimmed = highlightSites && !siteIds.includes(site.id)
       const icon = L.divIcon({
-        className: `site-icon${selected ? " is-selected" : ""}`,
+        className: `site-icon${selected ? " is-selected" : ""}${dimmed ? " is-dimmed" : ""}`,
         html: markerHtml(site),
         iconSize: [22, 22],
         iconAnchor: [11, 11],
       })
       const marker = L.marker(site.position, {
         icon,
-        zIndexOffset: 600,
+        zIndexOffset: selected ? 700 : dimmed ? 500 : 600,
+        opacity: dimmed ? 0.35 : 1,
       })
       if (onSelectSite) marker.on("click", () => onSelectSite(site))
       marker.addTo(group)
@@ -487,13 +506,18 @@ function TradeMap({
       const lease = tradeArea.leases[pin.leaseIndex]
       if (!lease) continue
       const selected = highlightLeases && leaseIdx.includes(pin.leaseIndex)
+      const dimmed = highlightLeases && !leaseIdx.includes(pin.leaseIndex)
       const icon = L.divIcon({
-        className: `lease-icon${selected ? " is-selected" : ""}`,
+        className: `lease-icon${selected ? " is-selected" : ""}${dimmed ? " is-dimmed" : ""}`,
         html: `<span class="lease-pin">${pin.leaseIndex + 1}</span>`,
         iconSize: [20, 20],
         iconAnchor: [10, 10],
       })
-      const marker = L.marker(pin.position, { icon, zIndexOffset: 400 })
+      const marker = L.marker(pin.position, {
+        icon,
+        zIndexOffset: selected ? 500 : 400,
+        opacity: dimmed ? 0.35 : 1,
+      })
       if (onSelectLease) {
         marker.on("click", () => onSelectLease(pin.leaseIndex))
       }
@@ -706,7 +730,7 @@ const CHART_NOTES: Record<ChartId, readonly string[]> = {
   "4": [
     tradeArea.clickSourceLine,
     "“$250K+” means at least one tract is at the Census top code ($250,001), so the true figure is a minimum.",
-    "Map income shading uses the same Median HH Income bands as this chart.",
+    "Map shading can use Median HH Income bands from this chart (default), or Population, Employees, or Foot Traffic.",
     "Full comparison tables are in the analysis PDF.",
   ],
   "5": [
@@ -1148,6 +1172,89 @@ function MultiSelect({
               {opt.label}
             </label>
           ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function sameShadeMode(a: ShadeMode, b: ShadeMode): boolean {
+  if (a.measure !== b.measure) return false
+  if (a.measure === "footTraffic" && b.measure === "footTraffic") {
+    return a.day === b.day && a.window === b.window
+  }
+  return true
+}
+
+function MapShadingSelect({
+  mode,
+  onChange,
+}: {
+  mode: ShadeMode
+  onChange: (mode: ShadeMode) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useMenuDismiss(open, () => setOpen(false))
+  const pick = (next: ShadeMode) => {
+    onChange(next)
+    setOpen(false)
+  }
+
+  return (
+    <div className="multi-select shade-select" ref={rootRef}>
+      <span className="multi-select-label">Map Shading</span>
+      <button
+        type="button"
+        className="multi-select-trigger"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span>{shadeModeLabel(mode)}</span>
+        <span className="multi-select-caret" aria-hidden="true">
+          ▾
+        </span>
+      </button>
+      {open ? (
+        <div className="multi-select-menu shade-menu" role="listbox">
+          <button
+            type="button"
+            className={mode.measure === "income" ? "active" : ""}
+            onClick={() => pick({ measure: "income" })}
+          >
+            Median HH Income (Estimate)
+          </button>
+          <button
+            type="button"
+            className={mode.measure === "population" ? "active" : ""}
+            onClick={() => pick({ measure: "population" })}
+          >
+            Population
+          </button>
+          <button
+            type="button"
+            className={mode.measure === "employees" ? "active" : ""}
+            onClick={() => pick({ measure: "employees" })}
+          >
+            Employees
+          </button>
+          <div className="menu-section">Foot Traffic (Modeled)</div>
+          {FOOT_TRAFFIC_OPTIONS.map((opt) => {
+            const next: ShadeMode = {
+              measure: "footTraffic",
+              day: opt.day,
+              window: opt.window,
+            }
+            return (
+              <button
+                key={`${opt.day}-${opt.window}`}
+                type="button"
+                className={sameShadeMode(mode, next) ? "active" : ""}
+                onClick={() => pick(next)}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
         </div>
       ) : null}
     </div>
@@ -2119,7 +2226,8 @@ export default function App() {
   const [sitesFocus, setSitesFocus] = useState<SitesFocus>("site")
   const [siteTab, setSiteTab] = useState<SiteTab>("1")
   const [hoodTab, setHoodTab] = useState<HoodTab>("3")
-  const [selectedIncomeBand, setSelectedIncomeBand] = useState<string | null>(
+  const [shadeMode, setShadeMode] = useState<ShadeMode>(DEFAULT_SHADE_MODE)
+  const [selectedShadeBand, setSelectedShadeBand] = useState<string | null>(
     null,
   )
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([
@@ -2159,21 +2267,34 @@ export default function App() {
   })
 
   const pickSite = (site: Site) => {
-    setSelectedSiteIds([site.id])
+    setSelectedSiteIds((prev) =>
+      prev.length === 1 && prev[0] === site.id ? [...ALL_SITE_IDS] : [site.id],
+    )
     setSitesFocus("site")
     setSiteTab("1")
   }
   const pickLease = (index: number) => {
-    setSelectedLeaseIndexes([index])
+    setSelectedLeaseIndexes((prev) =>
+      prev.length === 1 && prev[0] === index
+        ? [...ALL_LEASE_INDEXES]
+        : [index],
+    )
     setSitesFocus("comparable")
     setSiteTab("6")
   }
   const pickHood = (n: Neighborhood) => {
-    setSelectedHoodNames([n.name])
+    setSelectedHoodNames((prev) =>
+      prev.length === 1 && prev[0] === n.name
+        ? [...ALL_HOOD_NAMES]
+        : [n.name],
+    )
   }
-  const pickIncomeBand = (label: string) => {
-    setSelectedIncomeBand((prev) => (prev === label ? null : label))
-    setHoodLayers((prev) => (prev.income ? prev : { ...prev, income: true }))
+  const pickShadeBand = (label: string) => {
+    setSelectedShadeBand((prev) => (prev === label ? null : label))
+  }
+  const changeShadeMode = (next: ShadeMode) => {
+    setShadeMode(next)
+    setSelectedShadeBand(null)
   }
 
   useEffect(() => {
@@ -2371,7 +2492,7 @@ export default function App() {
         </section>
 
         <section className="view-section" id="neighborhoods">
-          <header className="view-header with-filter">
+          <header className="view-header with-filter with-shade">
             <div className="view-header-copy">
               <h2>Neighborhoods</h2>
               <p>
@@ -2380,74 +2501,65 @@ export default function App() {
                 removes the selection.
               </p>
             </div>
-            <MultiSelect
-              label="Neighborhoods"
-              allIds={ALL_HOOD_NAMES}
-              selected={selectedHoodNames}
-              onChange={setSelectedHoodNames}
-              allLabel="All Neighborhoods"
-              singular="Neighborhood"
-              options={tradeArea.neighborhoods.map((hood) => ({
-                id: hood.name,
-                label: `${hood.name} · ${hood.group}`,
-              }))}
-            />
+            <div className="view-header-filters">
+              <MultiSelect
+                label="Neighborhoods"
+                allIds={ALL_HOOD_NAMES}
+                selected={selectedHoodNames}
+                onChange={setSelectedHoodNames}
+                allLabel="All Neighborhoods"
+                singular="Neighborhood"
+                options={tradeArea.neighborhoods.map((hood) => ({
+                  id: hood.name,
+                  label: `${hood.name} · ${hood.group}`,
+                }))}
+              />
+              <MapShadingSelect mode={shadeMode} onChange={changeShadeMode} />
+            </div>
           </header>
 
           <div className="map-toolbar">
             <div className="layer-toggles">
-              {(
-                [
-                  ["income", "Income Shading"],
-                  ["labels", "Neighborhood Labels"],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key}>
-                  <input
-                    type="checkbox"
-                    checked={hoodLayers[key]}
-                    onChange={() => {
-                      setHoodLayers((prev) => {
-                        const next = { ...prev, [key]: !prev[key] }
-                        if (key === "income" && !next.income) {
-                          setSelectedIncomeBand(null)
-                        }
-                        return next
-                      })
-                    }}
-                  />
-                  {label}
-                </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={hoodLayers.labels}
+                  onChange={() =>
+                    setHoodLayers((prev) => ({
+                      ...prev,
+                      labels: !prev.labels,
+                    }))
+                  }
+                />
+                Neighborhood Labels
+              </label>
+            </div>
+            <div
+              className="map-legend-keys inline income-key"
+              role="group"
+              aria-label={shadeLegendTitle(shadeMode)}
+            >
+              <span className="key-label">{shadeLegendTitle(shadeMode)}</span>
+              {shadeStops(shadeMode).map((stop) => (
+                <button
+                  key={stop.label}
+                  type="button"
+                  className={`income-swatch button${
+                    selectedShadeBand === stop.label ? " active" : ""
+                  }${
+                    selectedShadeBand && selectedShadeBand !== stop.label
+                      ? " dimmed"
+                      : ""
+                  }`}
+                  aria-pressed={selectedShadeBand === stop.label}
+                  title={`Highlight ${stop.label} neighborhoods`}
+                  onClick={() => pickShadeBand(stop.label)}
+                >
+                  <i style={{ background: stop.color }} />
+                  {stop.label}
+                </button>
               ))}
             </div>
-            {hoodLayers.income ? (
-              <div
-                className="map-legend-keys inline income-key"
-                role="group"
-                aria-label="Median HH Income"
-              >
-                <span className="key-label">Median HH Income</span>
-                {INCOME_STOPS.map((stop) => (
-                  <button
-                    key={stop.label}
-                    type="button"
-                    className={`income-swatch button${
-                      selectedIncomeBand === stop.label ? " active" : ""
-                    }${
-                      selectedIncomeBand && selectedIncomeBand !== stop.label
-                        ? " dimmed"
-                        : ""
-                    }`}
-                    aria-pressed={selectedIncomeBand === stop.label}
-                    title={`Highlight ${stop.label} neighborhoods`}
-                    onClick={() => pickIncomeBand(stop.label)}
-                  >
-                    <i style={{ background: stop.color }} />
-                    {stop.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </div>
 
           <div className="map-stage single">
@@ -2455,7 +2567,8 @@ export default function App() {
               mode="neighborhoods"
               layers={hoodLayers}
               selectedNames={selectedHoodNames}
-              selectedIncomeBand={selectedIncomeBand}
+              shadeMode={shadeMode}
+              selectedShadeBand={selectedShadeBand}
               onSelect={pickHood}
             />
           </div>

@@ -382,6 +382,19 @@
   align-items: start;
 }
 
+.view-header.with-filter.with-shade {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.view-header-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  justify-content: flex-end;
+  align-items: start;
+  max-width: min(100%, 560px);
+}
+
 .view-header h2 {
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.05;
@@ -399,8 +412,21 @@
 .multi-select {
   position: relative;
   z-index: 21;
-  width: min(100%, 320px);
+  width: clamp(200px, 28vw, 280px);
+  min-width: 200px;
+  max-width: 280px;
   justify-self: end;
+}
+
+.view-header-filters .multi-select {
+  justify-self: stretch;
+  flex: 1 1 200px;
+}
+
+.shade-select {
+  width: clamp(180px, 24vw, 260px);
+  min-width: 180px;
+  max-width: 260px;
 }
 
 .multi-select-label {
@@ -606,13 +632,24 @@
 }
 
 @media (max-width: 900px) {
-  .view-header.with-filter {
+  .view-header.with-filter,
+  .view-header.with-filter.with-shade {
     grid-template-columns: 1fr;
   }
 
-  .multi-select {
+  .view-header-filters {
+    max-width: none;
+    justify-content: stretch;
+  }
+
+  .multi-select,
+  .shade-select,
+  .view-header-filters .multi-select {
     justify-self: stretch;
     width: 100%;
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 100%;
   }
 
   .multi-select-label {
@@ -1218,6 +1255,18 @@
 .site-icon.is-selected .site-marker {
   filter: drop-shadow(0 0 3px #002349);
   transform: scale(1.3);
+}
+
+.site-icon.is-dimmed,
+.lease-icon.is-dimmed {
+  opacity: 0.35;
+  filter: grayscale(0.15);
+}
+
+.income-key .key-label {
+  max-width: 220px;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .panel-card,
